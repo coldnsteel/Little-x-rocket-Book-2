@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Little X and the Dinosaur Dream Machine</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px #8a2be2;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #8a2be2; }
+            to { text-shadow: 0 0 30px #8a2be2, 0 0 40px #4b0082; }
+        }
+        .chapter {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #8a2be2;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        .chapter h2 {
+            color: #ff6b9d;
+            margin-top: 0;
+        }
+        .chalkboard-container {
+            background: rgba(138, 43, 226, 0.2);
+            border: 3px dashed #8a2be2;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        #chalkboard {
+            background: #1a1a2e;
+            border: 2px solid #4b0082;
+            border-radius: 10px;
+            cursor: crosshair;
+            display: block;
+            margin: 20px auto;
+        }
+        .btn {
+            background: linear-gradient(45deg, #8a2be2, #4b0082);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
+        }
+        .controls {
+            margin-top: 15px;
+        }
+        .story-text {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .character-speech {
+            background: rgba(255, 107, 157, 0.1);
+            border-left: 4px solid #ff6b9d;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .nav-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 2em; }
+            .chapter { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="stars-container"></div>
+    
+    <div class="container">
+        <h1>Little X and the Dinosaur Dream Machine</h1>
+        <p style="text-align: center; font-size: 1.2em; color: #ff6b9d;">Book 2 of the Little X Adventures</p>
+        
+        <div class="chapter" id="chapter1">
+            <h2>Chapter 1: The Cosmic Chalkboard</h2>
+            
+            <div class="story-text">
+                <p>Little X stepped into Uncle Harold's workshop, still thinking about the amazing adventures with ARIA and the purple rocket. The room was filled with fascinating gadgets and glowing instruments, but one thing caught Little X's eye immediately.</p>
+                
+                <p>In the corner, a mysterious chalkboard hummed with cosmic energy. Purple and blue gradients swirled across its surface like a miniature galaxy.</p>
+                
+                <div class="character-speech">
+                    <strong>Uncle Harold:</strong> "Ah, you've noticed the Dinosaur Dream Machine! It's a very special 3D chalkboard that brings drawings to life."
+                </div>
+                
+                <p>Little X remembered ARIA's lessons about approaching new technology with wisdom. The chalkboard pulsed gently, almost inviting exploration, but Little X hesitated.</p>
+                
+                <div class="character-speech">
+                    <strong>Little X:</strong> "Is it... safe? What if I draw something wrong?"
+                </div>
+                
+                <div class="character-speech">
+                    <strong>Uncle Harold:</strong> "That's a wise question! The machine responds to your creativity and pure intentions. It was built to help children explore their imagination safely. Would you like to try?"
+                </div>
+                
+                <p>Little X nodded slowly, picking up the cosmic chalk that glowed with starlight.</p>
+            </div>
+            
+            <div class="chalkboard-container">
+                <h3>Try the Cosmic Chalkboard!</h3>
+                <p>Draw a simple dinosaur shape. The lines will glow as you create!</p>
+                <canvas id="chalkboard" width="600" height="400"></canvas>
+                <div class="controls">
+                    <button class="btn" onclick="clearBoard()">Clear Board</button>
+                    <button class="btn" onclick="bringToLife()">Bring Drawing to Life!</button>
+                    <button class="btn" onclick="saveDrawing()">Save Drawing</button>
+                </div>
+                <div id="drawing-message" style="margin-top: 15px; color: #ff6b9d; font-weight: bold;"></div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn" onclick="nextChapter()" style="font-size: 18px; padding: 15px 30px;">
+                    Continue to Chapter 2
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create stars
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        // Chalkboard drawing
+        const canvas = document.getElementById('chalkboard');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch support
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            ctx.strokeStyle = '#8a2be2';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#8a2be2';
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            
+            [lastX, lastY] = [e.offsetX, e.offsetY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+            isDrawing = true;
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            ctx.strokeStyle = '#8a2be2';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#8a2be2';
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            [lastX, lastY] = [x, y];
+        }
+
+        function clearBoard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('drawing-message').textContent = '';
+        }
+
+        function bringToLife() {
+            const message = document.getElementById('drawing-message');
+            message.textContent = 'Your drawing glows with cosmic energy! Something magical is about to happen...';
+            
+            // Add glow effect to canvas
+            canvas.style.boxShadow = '0 0 30px #8a2be2, 0 0 50px #ff6b9d';
+            setTimeout(() => {
+                canvas.style.boxShadow = 'none';
+                message.textContent = 'Ready for Chapter 2 to see what happens next!';
+            }, 2000);
+        }
+
+        function saveDrawing() {
+            const message = document.getElementById('drawing-message');
+            message.textContent = 'Your cosmic creation has been saved to the eternal memory banks!';
+        }
+
+        function nextChapter() {
+            alert('Chapter 2 will be added tomorrow! Your drawing is saved and Raaarrr is ready to meet you!');
+        }
+
+        createStars();
+        console.log('Little X Book 2 Foundation Ready!');
+    </script>
+</body>
+</html>
