@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Little X and the Dinosaur Dream Machine</title>
-    <link rel="manifest" href="manifest.json">
     <style>
         body {
             margin: 0;
@@ -248,10 +247,6 @@
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js');
-        }
-
         function createStars() {
             const container = document.getElementById('stars-container');
             for (let i = 0; i < 50; i++) {
@@ -282,11 +277,17 @@
 
         function startDrawing(e) {
             isDrawing = true;
-            [lastX, lastY] = [e.offsetX, e.offsetY];
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
         }
 
         function draw(e) {
             if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
             ctx.strokeStyle = '#8a2be2';
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
@@ -294,9 +295,9 @@
             ctx.shadowColor = '#8a2be2';
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
-            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.lineTo(x, y);
             ctx.stroke();
-            [lastX, lastY] = [e.offsetX, e.offsetY];
+            [lastX, lastY] = [x, y];
         }
 
         function stopDrawing() {
