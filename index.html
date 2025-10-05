@@ -59,7 +59,7 @@
             margin: 30px 0;
             text-align: center;
         }
-        #chalkboard {
+        #chalkboard, #glitter-canvas {
             background: #1a1a2e;
             border: 2px solid #4b0082;
             border-radius: 10px;
@@ -237,11 +237,58 @@
 
         <div class="chapter" id="chapter3" style="display: none;">
             <h2>Chapter 3: Glitch in the Galaxy</h2>
+            
             <div class="story-text">
-                <p>Coming soon! Little X and Raaarrr find themselves on a glittery planet...</p>
+                <p>The vortex spat Little X and Raaarrr out onto a sparkling world of pure glitter! The ground shimmered like a million tiny stars, and the sky swirled with colors that matched Raaarrr's scales. But something was wrong—the glitter was glitching, forming dark patches that sucked in the light.</p>
+                
+                <div class="character-speech">
+                    <strong>Raaarrr:</strong> "Raaarrr! This is the Glitter Planet, but look—those dark glitches are eating the sparkle! We need to fix it with music and drawing!"
+                </div>
+                
+                <p>Little X spotted a wise figure in the distance: Keanu, the cosmic guardian, floating on a cloud of stardust. He waved them over with a gentle smile.</p>
+                
+                <div class="character-speech">
+                    <strong>Keanu:</strong> "Young creators, the glitches come from unbalanced intentions. Use your chalkboard and instruments wisely—pure joy restores the glitter. But choose your path: Draw to heal, or compose to harmonize?"
+                </div>
+                
+                <p>Raaarrr's scales flickered blue (calm) then purple (curious). Little X felt the weight of the choice—ARIA's lessons echoed: Technology serves wisdom, not whims.</p>
+            </div>
+            
+            <div class="chalkboard-container">
+                <h3>Glitter Quest: Choose Your Path!</h3>
+                <p>Draw a healing shape or pick an instrument to harmonize the glitches.</p>
+                <div style="position: relative; width: 600px; margin: 20px auto;">
+                    <canvas id="glitter-canvas" width="600" height="400" style="background: linear-gradient(to bottom, #ff6b9d, #8a2be2); border: 2px solid #ff6b9d; cursor: crosshair; display: block;"></canvas>
+                    <canvas id="particles" width="600" height="400" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+                </div>
+                <div class="instruments">
+                    <button class="btn" onclick="healWithDraw()">Draw to Heal Glitches</button>
+                    <button class="btn" onclick="harmonizeWithMusic()">Compose Harmony</button>
+                </div>
+                <div id="quest-message" style="margin-top: 15px; color: #ff6b9d; font-weight: bold;"></div>
+            </div>
+            
+            <div class="story-text">
+                <p>Whatever Little X chose, the glitches began to fade, revealing the true beauty of the Glitter Planet. Raaarrr danced with joy, his scales exploding in full rainbow as the sparkles returned.</p>
+                
+                <div class="character-speech">
+                    <strong>Keanu:</strong> "Well done! Remember, creation with pure hearts mends any glitch. Now, prepare for the final lesson back home..."
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn" onclick="saveProgress(3); loadChapter(4)">To Chapter 4</button>
+                <button class="btn" onclick="loadChapter(2)">Back to Chapter 2</button>
+            </div>
+        </div>
+
+        <div class="chapter" id="chapter4" style="display: none;">
+            <h2>Chapter 4: Keanu's Wisdom</h2>
+            <div class="story-text">
+                <p>Coming soon! The final lesson awaits...</p>
             </div>
             <div class="nav-buttons">
-                <button class="btn" onclick="loadChapter(2)">Back to Chapter 2</button>
+                <button class="btn" onclick="loadChapter(3)">Back to Chapter 3</button>
             </div>
         </div>
     </div>
@@ -352,10 +399,17 @@
             message.textContent = 'Your cosmic creation has been saved to the eternal memory banks!';
         }
 
+        let particlesActive = false;
+        let particles = [];
+
         function loadChapter(chapterNum) {
+            particlesActive = false;
             document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
             document.getElementById('chapter' + chapterNum).style.display = 'block';
             window.scrollTo(0, 0);
+            if (chapterNum === 3) {
+                setTimeout(initGlitterParticles, 100);
+            }
         }
 
         function nextChapter() {
@@ -419,6 +473,60 @@
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function initGlitterParticles() {
+            if (particlesActive) return;
+            particlesActive = true;
+            
+            const pCanvas = document.getElementById('particles');
+            if (!pCanvas) return;
+            
+            const pCtx = pCanvas.getContext('2d');
+            particles = [];
+            
+            for (let i = 0; i < 50; i++) {
+                particles.push({
+                    x: Math.random() * pCanvas.width,
+                    y: Math.random() * pCanvas.height,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+                    size: Math.random() * 4 + 2
+                });
+            }
+            
+            function animateParticles() {
+                if (!particlesActive) return;
+                pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > pCanvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > pCanvas.height) p.vy *= -1;
+                    pCtx.fillStyle = p.color;
+                    pCtx.beginPath();
+                    pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    pCtx.fill();
+                });
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+        }
+        
+        function healWithDraw() {
+            const message = document.getElementById('quest-message');
+            message.textContent = 'Your drawing heals the glitches! Glitter sparkles return – Raaarrr turns pink with joy!';
+            const glitterCanvas = document.getElementById('glitter-canvas');
+            glitterCanvas.style.boxShadow = '0 0 20px #ff6b9d';
+            setTimeout(() => glitterCanvas.style.boxShadow = 'none', 1500);
+        }
+        
+        function harmonizeWithMusic() {
+            initAudio();
+            const freqs = [440, 523, 659, 784];
+            freqs.forEach((f, i) => setTimeout(() => playTone(f, 0.8, 'harp'), i * 200));
+            document.getElementById('quest-message').textContent = 'Harmony restores the galaxy! Raaarrr's scales swirl blue-calm.';
         }
 
         function saveProgress(chapter) {
