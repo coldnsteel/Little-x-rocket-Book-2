@@ -1,0 +1,29 @@
+{
+  "name": "Little X and the Dinosaur Dream Machine",
+  "short_name": "Little X Dino",
+  "description": "Draw dinosaurs to life with the cosmic chalkboard – ethical AI adventures with Raaarrr!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f23",
+  "theme_color": "#8a2be2",
+  "orientation": "any",
+  "categories": ["games", "entertainment", "education"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iOTYiIGZpbGw9IiMwYTBhMGEiLz48cGF0aCBkPSJNODAgMTUwTDYwIDEzMEw4MCAxMzBaTTEyMCAxNTBMMTAwIDEzMEwxMjAgMTMwWiIgZmlsbD0iIzhhMmJlMiIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iNjAiIHI9IjIwIiBmaWxsPSIjZmY2YjlkIi8+PHRleHQgeD0iOTYiIHk9IjE3NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOGEyYmUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SYWFhcnJyITwvdGV4dD48L3N2Zz4=",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9IiMwYTBhMGEiLz48cGF0aCBkPSJNMjAwIDQwMEwxNjAgMzYwTDIwMCAzNjBaTTMyMCA0MDBMMjgwIDM2MEwzMjAgMzYwWiIgZmlsbD0iIzhhMmJlMiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjE2MCIgcj0iNTAiIGZpbGw9IiNmZjZiOWQiLz48dGV4dCB4PSIyNTYiIHk9IjQ2MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjMyIiBmaWxsPSIjOGEyYmUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SYWFhcnJyITwvdGV4dD48L3N2Zz4=",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "en",
+  "scope": "/",
+  "id": "/little-x-book-2",
+  "prefer_related_applications": false
+}
