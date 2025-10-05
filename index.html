@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Little X and the Dinosaur Dream Machine</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         body {
             margin: 0;
@@ -100,6 +101,13 @@
             text-align: center;
             margin: 30px 0;
         }
+        .instruments {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
         @media (max-width: 600px) {
             h1 { font-size: 2em; }
             .chapter { padding: 20px; }
@@ -156,10 +164,94 @@
                 </button>
             </div>
         </div>
+
+        <div class="chapter" id="chapter2" style="display: none;">
+            <h2>Chapter 2: Raaarrr's Rainbow Roar</h2>
+            
+            <div class="story-text">
+                <p>The lines Little X had drawn began to shimmer and pulse with energy. Suddenly, they lifted off the chalkboard and swirled through the air!</p>
+                
+                <p>With a mighty <strong>RAAARRR!</strong>, the drawing transformed into a living, breathing dinosaur. But this was no ordinary T-Rex – this was Raaarrr, whose scales cycled through every color of the rainbow like a living light show.</p>
+                
+                <div class="character-speech">
+                    <strong>Raaarrr:</strong> "Hello, Little X! Thank you for bringing me to life! I'm Raaarrr, and I LOVE making music!"
+                </div>
+                
+                <div class="character-speech">
+                    <strong>Little X:</strong> "You can talk! And you're... changing colors!"
+                </div>
+                
+                <div class="character-speech">
+                    <strong>Raaarrr:</strong> "That's right! My colors show my feelings. Purple when I'm curious, pink when I'm happy, blue when I'm calm, and rainbow when I'm making music! Want to create a Dino Symphony together?"
+                </div>
+                
+                <p>Little X noticed that Uncle Harold was smiling from the corner of the workshop. The chalkboard responded to pure creative joy, just as he'd said.</p>
+                
+                <p>Raaarrr bounded over to a collection of glowing instruments that appeared around the room:</p>
+            </div>
+            
+            <div class="chalkboard-container">
+                <h3>Help Raaarrr Discover Instruments!</h3>
+                <p>Click on Raaarrr to hear him try each instrument</p>
+                
+                <div style="margin: 20px 0;">
+                    <div id="raaarrr-character" onclick="playRaaaarrrSound()" style="font-size: 100px; cursor: pointer; transition: transform 0.3s;">
+                        🦖
+                    </div>
+                </div>
+                
+                <div class="instruments">
+                    <button class="btn" onclick="selectDinoInstrument('piano')">🎹 Cosmic Piano</button>
+                    <button class="btn" onclick="selectDinoInstrument('harp')">🪕 Star Harp</button>
+                    <button class="btn" onclick="selectDinoInstrument('flute')">🪈 Nebula Flute</button>
+                    <button class="btn" onclick="selectDinoInstrument('drums')">🥁 Galaxy Drums</button>
+                </div>
+                
+                <div id="instrument-message" style="margin-top: 15px; color: #ff6b9d; font-weight: bold;"></div>
+            </div>
+            
+            <div class="story-text">
+                <p>As Little X and Raaarrr experimented with each instrument, something magical happened. The music they created together formed glowing musical notes that floated through the air, creating swirling patterns of light around the workshop.</p>
+                
+                <div class="character-speech">
+                    <strong>Uncle Harold:</strong> "You two are naturals! The Dinosaur Dream Machine responds to the joy you're creating together. This is exactly what it was built for!"
+                </div>
+                
+                <p>Raaarrr was so excited that he started dancing, his tail swishing to the rhythm. But then...</p>
+                
+                <p><strong>BOOM!</strong></p>
+                
+                <p>Raaarrr's enthusiastic stomp shook the entire workshop. The chalkboard flashed with brilliant light, and suddenly everything started to spin!</p>
+                
+                <div class="character-speech">
+                    <strong>Raaarrr:</strong> "Oops! I didn't mean to—"
+                </div>
+                
+                <p>But it was too late. Little X and Raaarrr were pulled into a swirling vortex of color and light...</p>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn" onclick="saveProgress(2); loadChapter(3)">Continue to Chapter 3</button>
+                <button class="btn" onclick="loadChapter(1)">Back to Chapter 1</button>
+            </div>
+        </div>
+
+        <div class="chapter" id="chapter3" style="display: none;">
+            <h2>Chapter 3: Glitch in the Galaxy</h2>
+            <div class="story-text">
+                <p>Coming soon! Little X and Raaarrr find themselves on a glittery planet...</p>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn" onclick="loadChapter(2)">Back to Chapter 2</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Create stars
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+
         function createStars() {
             const container = document.getElementById('stars-container');
             for (let i = 0; i < 50; i++) {
@@ -174,7 +266,6 @@
             }
         }
 
-        // Chalkboard drawing
         const canvas = document.getElementById('chalkboard');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
@@ -185,8 +276,6 @@
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
-
-        // Touch support
         canvas.addEventListener('touchstart', handleTouchStart);
         canvas.addEventListener('touchmove', handleTouchMove);
         canvas.addEventListener('touchend', stopDrawing);
@@ -198,18 +287,15 @@
 
         function draw(e) {
             if (!isDrawing) return;
-            
             ctx.strokeStyle = '#8a2be2';
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#8a2be2';
-            
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(e.offsetX, e.offsetY);
             ctx.stroke();
-            
             [lastX, lastY] = [e.offsetX, e.offsetY];
         }
 
@@ -233,18 +319,15 @@
             const rect = canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
-            
             ctx.strokeStyle = '#8a2be2';
             ctx.lineWidth = 3;
             ctx.lineCap = 'round';
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#8a2be2';
-            
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(x, y);
             ctx.stroke();
-            
             [lastX, lastY] = [x, y];
         }
 
@@ -256,8 +339,6 @@
         function bringToLife() {
             const message = document.getElementById('drawing-message');
             message.textContent = 'Your drawing glows with cosmic energy! Something magical is about to happen...';
-            
-            // Add glow effect to canvas
             canvas.style.boxShadow = '0 0 30px #8a2be2, 0 0 50px #ff6b9d';
             setTimeout(() => {
                 canvas.style.boxShadow = 'none';
@@ -270,12 +351,89 @@
             message.textContent = 'Your cosmic creation has been saved to the eternal memory banks!';
         }
 
+        function loadChapter(chapterNum) {
+            document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
+            document.getElementById('chapter' + chapterNum).style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
         function nextChapter() {
-            alert('Chapter 2 will be added tomorrow! Your drawing is saved and Raaarrr is ready to meet you!');
+            saveProgress(1);
+            loadChapter(2);
+        }
+
+        let currentDinoInstrument = null;
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function selectDinoInstrument(instrument) {
+            initAudio();
+            currentDinoInstrument = instrument;
+            const messages = {
+                piano: "🎹 Raaarrr touches the Cosmic Piano and it sparkles!",
+                harp: "🪕 The Star Harp glows as Raaarrr plucks its strings!",
+                flute: "🪈 Raaarrr's breath makes the Nebula Flute sing!",
+                drums: "🥁 Raaarrr taps the Galaxy Drums with his tail!"
+            };
+            document.getElementById('instrument-message').textContent = messages[instrument];
+            const freq = 440;
+            playTone(freq, 0.5, instrument);
+        }
+
+        function playRaaaarrrSound() {
+            if (!currentDinoInstrument) {
+                document.getElementById('instrument-message').textContent = "Choose an instrument first!";
+                return;
+            }
+            const raaarrr = document.getElementById('raaarrr-character');
+            raaarrr.style.transform = 'scale(1.2) rotate(5deg)';
+            initAudio();
+            playTone(200 + Math.random() * 200, 0.3, currentDinoInstrument);
+            setTimeout(() => {
+                raaarrr.style.transform = 'scale(1) rotate(0deg)';
+            }, 300);
+            document.getElementById('instrument-message').textContent = "RAAARRR! 🎵 Musical magic!";
+        }
+
+        function playTone(frequency, duration, instrument) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            switch(instrument) {
+                case 'piano': oscillator.type = 'triangle'; break;
+                case 'harp': oscillator.type = 'sine'; break;
+                case 'flute': oscillator.type = 'sine'; break;
+                case 'drums': oscillator.type = 'square'; break;
+                default: oscillator.type = 'sine';
+            }
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function saveProgress(chapter) {
+            localStorage.setItem('littleXProgress', chapter);
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('littleXProgress');
+            if (saved) {
+                loadChapter(parseInt(saved));
+            }
         }
 
         createStars();
-        console.log('Little X Book 2 Foundation Ready!');
+        loadProgress();
+        console.log('Little X Book 2 Ready!');
     </script>
 </body>
 </html>
