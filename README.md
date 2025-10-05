@@ -25,3 +25,12 @@ Based on [outline.md](outline.md) – 4-chapter arc: Chalkboard intro → Dino m
 - Composer Tie: Reuse Book 1's MIDI (add roar sounds post-Ch. 3)
 
 ## File Structure
+## File Structure
+
+Little-x-rocket-Book-2/
+├── index.html          # Interactive story hub (Ch. 1 foundation + nav)
+├── outline.md          # Full 4-chap plot (dino dreams, glitter planet, Keanu wisdom)
+├── README.md           # This guide – series overview + install
+├── manifest.json       # PWA config (dino icons, standalone mode)
+├── sw.js               # Service worker (offline caching, Fortress-style)
+└── assets/             # (Future: CSS/JS split, Raaarrr sprites, MIDI files)
