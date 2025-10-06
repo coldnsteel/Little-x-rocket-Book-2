@@ -58,14 +58,19 @@
             padding: 20px;
             margin: 30px 0;
             text-align: center;
+            position: relative;
         }
-        #chalkboard, #glitter-canvas {
+        #chalkboard, #glitter-canvas, #build-canvas {
             background: #1a1a2e;
             border: 2px solid #4b0082;
             border-radius: 10px;
             cursor: crosshair;
             display: block;
             margin: 20px auto;
+        }
+        #glitter-canvas {
+            background: linear-gradient(to bottom, #ff6b9d, #8a2be2);
+            border: 2px solid #ff6b9d;
         }
         .btn {
             background: linear-gradient(45deg, #8a2be2, #4b0082);
@@ -96,16 +101,40 @@
             margin: 15px 0;
             border-radius: 5px;
         }
+        .guest-chat {
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 4px solid #00ff00;
+            animation: guest-pop 1s ease-out;
+        }
+        @keyframes guest-pop {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .nav-buttons {
             text-align: center;
             margin: 30px 0;
         }
-        .instruments {
+        .instruments, .toggle-controls {
             display: flex;
             gap: 10px;
             justify-content: center;
             flex-wrap: wrap;
             margin: 20px 0;
+        }
+        .light-status {
+            font-size: 24px;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .light-green { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+        .light-red { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+        #launch-particles {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 5;
         }
         @media (max-width: 600px) {
             h1 { font-size: 2em; }
@@ -258,7 +287,7 @@
                 <h3>Glitter Quest: Choose Your Path!</h3>
                 <p>Draw a healing shape or pick an instrument to harmonize the glitches.</p>
                 <div style="position: relative; width: 600px; margin: 20px auto;">
-                    <canvas id="glitter-canvas" width="600" height="400" style="background: linear-gradient(to bottom, #ff6b9d, #8a2be2); border: 2px solid #ff6b9d; cursor: crosshair; display: block;"></canvas>
+                    <canvas id="glitter-canvas" width="600" height="400"></canvas>
                     <canvas id="particles" width="600" height="400" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
                 </div>
                 <div class="instruments">
@@ -283,12 +312,52 @@
         </div>
 
         <div class="chapter" id="chapter4" style="display: none;">
-            <h2>Chapter 4: Keanu's Wisdom</h2>
+            <h2>Chapter 4: The Wisdom of Creation</h2>
+            
             <div class="story-text">
-                <p>Coming soon! The final lesson awaits...</p>
+                <p>Back in the workshop, the vortex faded, leaving Little X, Raaarrr, and Keanu in a circle of sparkling light. ARIA materialized as a holographic guest, her purple glow syncing with the chalkboard's hum.</p>
+                
+                <div class="character-speech guest-chat">
+                    <strong>ARIA (Guest):</strong> "Little X, you've built wonders! But remember, creations like buggies and towers serve joy and wisdom—not just whims. Let's build one last thing together: A moon base control center!"
+                </div>
+                
+                <div class="character-speech">
+                    <strong>Keanu:</strong> "Yes—draw with pure hearts. Toggle the lights to 'go' (green) or 'stop' (red), and see how balance launches dreams."
+                </div>
+                
+                <p>Raaarrr nodded, scales flashing rainbow excitement. "Raaarrr! Let's build a moon buggy, radio tower, and control panel—push buttons for lights and beeps!"</p>
             </div>
+            
+            <div class="chalkboard-container">
+                <h3>Build the Moon Base!</h3>
+                <p>Draw your buggy/tower/control (wheels, antenna, buttons). Then toggle lights to launch!</p>
+                <canvas id="build-canvas" width="600" height="400"></canvas>
+                <canvas id="launch-particles" width="600" height="400"></canvas>
+                <div class="controls">
+                    <button class="btn" onclick="clearBuildCanvas()">Clear Build</button>
+                    <button class="btn" onclick="bringBuildToLife()">Bring Build to Life!</button>
+                    <button class="btn" onclick="toggleLight()">Toggle Control Light</button>
+                </div>
+                <div class="toggle-controls">
+                    <div id="light-status" class="light-status light-green">🟢 GO - Ready for Launch!</div>
+                </div>
+                <div id="build-message" style="margin-top: 15px; color: #ff6b9d; font-weight: bold;"></div>
+            </div>
+            
+            <div class="story-text">
+                <p>As the build came alive—buggy wheels spinning, tower beeping signals, lights flashing—Keanu smiled. "See? Balanced creation lights the way home."</p>
+                
+                <div class="character-speech guest-chat">
+                    <strong>ARIA (Guest):</strong> "Perfect teamwork! What's next adventure, Little X?"
+                </div>
+                
+                <p>Raaarrr high-fived with his tail. The workshop echoed with laughter and sparkles—the Dinosaur Dream Machine ready for more dreams.</p>
+                <p><em>The End... Until Book 3: StarSong Symphony!</em></p>
+            </div>
+            
             <div class="nav-buttons">
-                <button class="btn" onclick="loadChapter(3)">Back to Chapter 3</button>
+                <button class="btn" onclick="loadChapter(1)">Restart Adventure</button>
+                <button class="btn" onclick="shareBuild()">Share Your Moon Base!</button>
             </div>
         </div>
     </div>
@@ -308,76 +377,80 @@
             }
         }
 
+        // Chapter 1 Drawing
         const canvas = document.getElementById('chalkboard');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
 
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', handleTouchStart);
-        canvas.addEventListener('touchmove', handleTouchMove);
-        canvas.addEventListener('touchend', stopDrawing);
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            lastX = e.clientX - rect.left;
-            lastY = e.clientY - rect.top;
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        function setupDrawing(canvasId) {
+            const c = document.getElementById(canvasId);
+            if (!c) return;
             
-            ctx.strokeStyle = '#8a2be2';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#8a2be2';
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            [lastX, lastY] = [x, y];
+            c.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                const rect = c.getBoundingClientRect();
+                lastX = e.clientX - rect.left;
+                lastY = e.clientY - rect.top;
+            });
+            
+            c.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+                const rect = c.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const context = c.getContext('2d');
+                
+                context.strokeStyle = '#8a2be2';
+                context.lineWidth = 3;
+                context.lineCap = 'round';
+                context.shadowBlur = 10;
+                context.shadowColor = '#8a2be2';
+                context.beginPath();
+                context.moveTo(lastX, lastY);
+                context.lineTo(x, y);
+                context.stroke();
+                [lastX, lastY] = [x, y];
+            });
+            
+            c.addEventListener('mouseup', () => isDrawing = false);
+            c.addEventListener('mouseout', () => isDrawing = false);
+            
+            c.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = c.getBoundingClientRect();
+                lastX = touch.clientX - rect.left;
+                lastY = touch.clientY - rect.top;
+                isDrawing = true;
+            });
+            
+            c.addEventListener('touchmove', (e) => {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = c.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                const context = c.getContext('2d');
+                
+                context.strokeStyle = '#8a2be2';
+                context.lineWidth = 3;
+                context.lineCap = 'round';
+                context.shadowBlur = 10;
+                context.shadowColor = '#8a2be2';
+                context.beginPath();
+                context.moveTo(lastX, lastY);
+                context.lineTo(x, y);
+                context.stroke();
+                [lastX, lastY] = [x, y];
+            });
+            
+            c.addEventListener('touchend', () => isDrawing = false);
         }
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        function handleTouchStart(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            lastX = touch.clientX - rect.left;
-            lastY = touch.clientY - rect.top;
-            isDrawing = true;
-        }
-
-        function handleTouchMove(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            ctx.strokeStyle = '#8a2be2';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#8a2be2';
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            [lastX, lastY] = [x, y];
-        }
+        setupDrawing('chalkboard');
 
         function clearBoard() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -399,6 +472,7 @@
             message.textContent = 'Your cosmic creation has been saved to the eternal memory banks!';
         }
 
+        // Chapter Navigation
         let particlesActive = false;
         let particles = [];
 
@@ -407,8 +481,12 @@
             document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
             document.getElementById('chapter' + chapterNum).style.display = 'block';
             window.scrollTo(0, 0);
+            
             if (chapterNum === 3) {
                 setTimeout(initGlitterParticles, 100);
+            }
+            if (chapterNum === 4) {
+                setTimeout(() => setupDrawing('build-canvas'), 100);
             }
         }
 
@@ -417,6 +495,7 @@
             loadChapter(2);
         }
 
+        // Chapter 2 - Instruments
         let currentDinoInstrument = null;
         let audioContext = null;
 
@@ -436,8 +515,7 @@
                 drums: "🥁 Raaarrr taps the Galaxy Drums with his tail!"
             };
             document.getElementById('instrument-message').textContent = messages[instrument];
-            const freq = 440;
-            playTone(freq, 0.5, instrument);
+            playTone(440, 0.5, instrument);
         }
 
         function playRaaaarrrSound() {
@@ -460,6 +538,7 @@
             const gainNode = audioContext.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
+            
             switch(instrument) {
                 case 'piano': oscillator.type = 'triangle'; break;
                 case 'harp': oscillator.type = 'sine'; break;
@@ -467,6 +546,7 @@
                 case 'drums': oscillator.type = 'square'; break;
                 default: oscillator.type = 'sine';
             }
+            
             oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
             gainNode.gain.setValueAtTime(0, audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
@@ -475,6 +555,7 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
 
+        // Chapter 3 - Glitter Particles
         function initGlitterParticles() {
             if (particlesActive) return;
             particlesActive = true;
@@ -529,20 +610,106 @@
             document.getElementById('quest-message').textContent = 'Harmony restores the galaxy! Raaarrr's scales swirl blue-calm.';
         }
 
-        function saveProgress(chapter) {
-            localStorage.setItem('littleXProgress', chapter);
+        // Chapter 4 - Build Functions
+        let lightOn = true;
+        
+        function clearBuildCanvas() {
+            const buildCanvas = document.getElementById('build-canvas');
+            const buildCtx = buildCanvas.getContext('2d');
+            buildCtx.clearRect(0, 0, buildCanvas.width, buildCanvas.height);
+            document.getElementById('build-message').textContent = '';
         }
-
-        function loadProgress() {
-            const saved = localStorage.getItem('littleXProgress');
-            if (saved) {
-                loadChapter(parseInt(saved));
+        
+        function toggleLight() {
+            lightOn = !lightOn;
+            const status = document.getElementById('light-status');
+            const message = document.getElementById('build-message');
+            initAudio();
+            
+            if (lightOn) {
+                status.textContent = '🟢 GO - Launch Sequence Active!';
+                status.className = 'light-status light-green';
+                playTone(523, 0.5, 'sine');
+                message.textContent = 'Green light! Buggy rolls, tower signals—adventure awaits!';
+            } else {
+                status.textContent = '🔴 STOP - Safety Check!';
+                status.className = 'light-status light-red';
+                playTone(392, 0.5, 'square');
+                message.textContent = 'Red light! Pause for wisdom—balance before build.';
             }
         }
 
-        createStars();
-        loadProgress();
-        console.log('Little X Book 2 Ready!');
-    </script>
+        function bringBuildToLife() {
+            const message = document.getElementById('build-message');
+            message.textContent = 'Your moon base activates! Particles launch the buggy—woosh!';
+            const buildCanvas = document.getElementById('build-canvas');
+            buildCanvas.style.boxShadow = '0 0 30px #00ff00';
+            initLaunchParticles();
+setTimeout(() => buildCanvas.style.boxShadow = 'none', 2000);
+}
+        let launchParticles = [];
+    function initLaunchParticles() {
+        const pCanvas = document.getElementById('launch-particles');
+        if (!pCanvas) return;
+        const pCtx = pCanvas.getContext('2d');
+        launchParticles = [];
+        
+        for (let i = 0; i < 30; i++) {
+            launchParticles.push({
+                x: pCanvas.width / 2,
+                y: pCanvas.height / 2,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10 - 5,
+                color: '#00ff00',
+                size: Math.random() * 3 + 1,
+                life: 100
+            });
+        }
+        
+        function animateLaunch() {
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+            launchParticles = launchParticles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 1;
+                pCtx.fillStyle = p.color;
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                pCtx.fill();
+                return p.life > 0;
+            });
+            if (launchParticles.length > 0) requestAnimationFrame(animateLaunch);
+        }
+        animateLaunch();
+    }
+
+    function shareBuild() {
+        const drawingData = document.getElementById('build-canvas').toDataURL();
+        const shareText = 'Check my moon base from Little X Book 2! 🦖🚀';
+        if (navigator.share) {
+            navigator.share({ title: 'My Dino Build', text: shareText, url: window.location.href })
+                .catch(() => alert(shareText + '\nCopy this URL to share!'));
+        } else {
+            alert(shareText + '\nCopy this URL to share: ' + window.location.href);
+        }
+    }
+
+    // Progress Management
+    function saveProgress(chapter) {
+        localStorage.setItem('littleXProgress', chapter);
+    }
+
+    function loadProgress() {
+        const saved = localStorage.getItem('littleXProgress');
+        if (saved) {
+            loadChapter(parseInt(saved));
+        }
+    }
+
+    // Initialize
+    createStars();
+    loadProgress();
+    console.log('Little X Book 2 - All 4 Chapters Ready!');
+</script>
 </body>
 </html>
