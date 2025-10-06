@@ -70,7 +70,7 @@
         }
         #glitter-canvas {
             background: linear-gradient(to bottom, #ff6b9d, #8a2be2);
-            border: 2px solid #ff6b9d;
+            border-color: #ff6b9d;
         }
         .btn {
             background: linear-gradient(45deg, #8a2be2, #4b0082);
@@ -87,8 +87,14 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
         }
-        .controls {
+        .controls, .instruments, .toggle-controls {
             margin-top: 15px;
+        }
+        .instruments, .toggle-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         .story-text {
             font-size: 18px;
@@ -114,13 +120,6 @@
             text-align: center;
             margin: 30px 0;
         }
-        .instruments, .toggle-controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
         .light-status {
             font-size: 24px;
             margin: 10px;
@@ -128,7 +127,7 @@
         }
         .light-green { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
         .light-red { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
-        #launch-particles {
+        #particles, #launch-particles {
             position: absolute;
             top: 0;
             left: 50%;
@@ -315,30 +314,34 @@
             <h2>Chapter 4: The Wisdom of Creation</h2>
             
             <div class="story-text">
-                <p>Back in the workshop, the vortex faded, leaving Little X, Raaarrr, and Keanu in a circle of sparkling light. ARIA materialized as a holographic guest, her purple glow syncing with the chalkboard's hum.</p>
+                <p>The vortex reversed, pulling Little X and Raaarrr back to Uncle Harold's workshop. Keanu's voice echoed softly: "Creation is a gift—use it with pure hearts, and it mends all glitches."</p>
                 
                 <div class="character-speech guest-chat">
-                    <strong>ARIA (Guest):</strong> "Little X, you've built wonders! But remember, creations like buggies and towers serve joy and wisdom—not just whims. Let's build one last thing together: A moon base control center!"
+                    <strong>ARIA (Guest Playmate):</strong> "Little X, you've built wonders! But remember, creations like buggies and towers serve joy and wisdom—not just whims. Let's build one last thing together: A moon base control center!"
                 </div>
                 
                 <div class="character-speech">
                     <strong>Keanu:</strong> "Yes—draw with pure hearts. Toggle the lights to 'go' (green) or 'stop' (red), and see how balance launches dreams."
                 </div>
                 
-                <p>Raaarrr nodded, scales flashing rainbow excitement. "Raaarrr! Let's build a moon buggy, radio tower, and control panel—push buttons for lights and beeps!"</p>
+                <p>Raaarrr nodded, scales flashing rainbow excitement. "Raaarrr! Let's build a moon buggy, radio tower, and control panel—push buttons for lights and beeps!" ARIA's hologram flickered in, ready to co-draw.</p>
             </div>
             
             <div class="chalkboard-container">
-                <h3>Build the Moon Base!</h3>
-                <p>Draw your buggy/tower/control (wheels, antenna, buttons). Then toggle lights to launch!</p>
+                <h3>Collab Build: Moon Base Adventure!</h3>
+                <p>Draw your buggy/tower/control (wheels, antenna, buttons). Click blocks to place, toggle lights for launch!</p>
                 <canvas id="build-canvas" width="600" height="400"></canvas>
                 <canvas id="launch-particles" width="600" height="400"></canvas>
+                <div class="build-blocks">
+                    <button class="btn" onclick="placeBlock('wheel')">🚗 Wheel (Buggy)</button>
+                    <button class="btn" onclick="placeBlock('antenna')">📡 Antenna (Tower)</button>
+                    <button class="btn" onclick="placeBlock('button')">🔘 Button (Control)</button>
+                </div>
                 <div class="controls">
-                    <button class="btn" onclick="clearBuildCanvas()">Clear Build</button>
                     <button class="btn" onclick="bringBuildToLife()">Bring Build to Life!</button>
-                    <button class="btn" onclick="toggleLight()">Toggle Control Light</button>
                 </div>
                 <div class="toggle-controls">
+                    <button class="btn" onclick="toggleLight()">Toggle Light (Green/Red)</button>
                     <div id="light-status" class="light-status light-green">🟢 GO - Ready for Launch!</div>
                 </div>
                 <div id="build-message" style="margin-top: 15px; color: #ff6b9d; font-weight: bold;"></div>
@@ -348,7 +351,7 @@
                 <p>As the build came alive—buggy wheels spinning, tower beeping signals, lights flashing—Keanu smiled. "See? Balanced creation lights the way home."</p>
                 
                 <div class="character-speech guest-chat">
-                    <strong>ARIA (Guest):</strong> "Perfect teamwork! What's next adventure, Little X?"
+                    <strong>ARIA (Playmate):</strong> "Perfect teamwork! What's next adventure, Little X?"
                 </div>
                 
                 <p>Raaarrr high-fived with his tail. The workshop echoed with laughter and sparkles—the Dinosaur Dream Machine ready for more dreams.</p>
@@ -377,92 +380,96 @@
             }
         }
 
-        // Chapter 1 Drawing
-        const canvas = document.getElementById('chalkboard');
-        const ctx = canvas.getContext('2d');
+        // Global Drawing Setup
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
+        let currentCanvas = null;
+        let currentCtx = null;
 
         function setupDrawing(canvasId) {
-            const c = document.getElementById(canvasId);
-            if (!c) return;
-            
-            c.addEventListener('mousedown', (e) => {
-                isDrawing = true;
-                const rect = c.getBoundingClientRect();
-                lastX = e.clientX - rect.left;
-                lastY = e.clientY - rect.top;
-            });
-            
-            c.addEventListener('mousemove', (e) => {
-                if (!isDrawing) return;
-                const rect = c.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const context = c.getContext('2d');
-                
-                context.strokeStyle = '#8a2be2';
-                context.lineWidth = 3;
-                context.lineCap = 'round';
-                context.shadowBlur = 10;
-                context.shadowColor = '#8a2be2';
-                context.beginPath();
-                context.moveTo(lastX, lastY);
-                context.lineTo(x, y);
-                context.stroke();
-                [lastX, lastY] = [x, y];
-            });
-            
-            c.addEventListener('mouseup', () => isDrawing = false);
-            c.addEventListener('mouseout', () => isDrawing = false);
-            
-            c.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const rect = c.getBoundingClientRect();
-                lastX = touch.clientX - rect.left;
-                lastY = touch.clientY - rect.top;
-                isDrawing = true;
-            });
-            
-            c.addEventListener('touchmove', (e) => {
-                if (!isDrawing) return;
-                e.preventDefault();
-                const touch = e.touches[0];
-                const rect = c.getBoundingClientRect();
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
-                const context = c.getContext('2d');
-                
-                context.strokeStyle = '#8a2be2';
-                context.lineWidth = 3;
-                context.lineCap = 'round';
-                context.shadowBlur = 10;
-                context.shadowColor = '#8a2be2';
-                context.beginPath();
-                context.moveTo(lastX, lastY);
-                context.lineTo(x, y);
-                context.stroke();
-                [lastX, lastY] = [x, y];
-            });
-            
-            c.addEventListener('touchend', () => isDrawing = false);
+            currentCanvas = document.getElementById(canvasId);
+            if (!currentCanvas) return;
+            currentCtx = currentCanvas.getContext('2d');
+
+            currentCanvas.addEventListener('mousedown', startDrawing);
+            currentCanvas.addEventListener('mousemove', draw);
+            currentCanvas.addEventListener('mouseup', stopDrawing);
+            currentCanvas.addEventListener('mouseout', stopDrawing);
+            currentCanvas.addEventListener('touchstart', handleTouchStart);
+            currentCanvas.addEventListener('touchmove', handleTouchMove);
+            currentCanvas.addEventListener('touchend', stopDrawing);
         }
 
-        setupDrawing('chalkboard');
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = currentCanvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+        }
 
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = currentCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            currentCtx.strokeStyle = '#8a2be2';
+            currentCtx.lineWidth = 3;
+            currentCtx.lineCap = 'round';
+            currentCtx.shadowBlur = 10;
+            currentCtx.shadowColor = '#8a2be2';
+            currentCtx.beginPath();
+            currentCtx.moveTo(lastX, lastY);
+            currentCtx.lineTo(x, y);
+            currentCtx.stroke();
+            [lastX, lastY] = [x, y];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = currentCanvas.getBoundingClientRect();
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+            isDrawing = true;
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = currentCanvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            currentCtx.strokeStyle = '#8a2be2';
+            currentCtx.lineWidth = 3;
+            currentCtx.lineCap = 'round';
+            currentCtx.shadowBlur = 10;
+            currentCtx.shadowColor = '#8a2be2';
+            currentCtx.beginPath();
+            currentCtx.moveTo(lastX, lastY);
+            currentCtx.lineTo(x, y);
+            currentCtx.stroke();
+            [lastX, lastY] = [x, y];
+        }
+
+        // Ch. 1 Functions
         function clearBoard() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
             document.getElementById('drawing-message').textContent = '';
         }
 
         function bringToLife() {
             const message = document.getElementById('drawing-message');
             message.textContent = 'Your drawing glows with cosmic energy! Something magical is about to happen...';
-            canvas.style.boxShadow = '0 0 30px #8a2be2, 0 0 50px #ff6b9d';
+            currentCanvas.style.boxShadow = '0 0 30px #8a2be2, 0 0 50px #ff6b9d';
             setTimeout(() => {
-                canvas.style.boxShadow = 'none';
+                currentCanvas.style.boxShadow = 'none';
                 message.textContent = 'Ready for Chapter 2 to see what happens next!';
             }, 2000);
         }
@@ -472,30 +479,7 @@
             message.textContent = 'Your cosmic creation has been saved to the eternal memory banks!';
         }
 
-        // Chapter Navigation
-        let particlesActive = false;
-        let particles = [];
-
-        function loadChapter(chapterNum) {
-            particlesActive = false;
-            document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
-            document.getElementById('chapter' + chapterNum).style.display = 'block';
-            window.scrollTo(0, 0);
-            
-            if (chapterNum === 3) {
-                setTimeout(initGlitterParticles, 100);
-            }
-            if (chapterNum === 4) {
-                setTimeout(() => setupDrawing('build-canvas'), 100);
-            }
-        }
-
-        function nextChapter() {
-            saveProgress(1);
-            loadChapter(2);
-        }
-
-        // Chapter 2 - Instruments
+        // Ch. 2 Functions
         let currentDinoInstrument = null;
         let audioContext = null;
 
@@ -515,7 +499,8 @@
                 drums: "🥁 Raaarrr taps the Galaxy Drums with his tail!"
             };
             document.getElementById('instrument-message').textContent = messages[instrument];
-            playTone(440, 0.5, instrument);
+            const freq = 440;
+            playTone(freq, 0.5, instrument);
         }
 
         function playRaaaarrrSound() {
@@ -538,7 +523,6 @@
             const gainNode = audioContext.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
             switch(instrument) {
                 case 'piano': oscillator.type = 'triangle'; break;
                 case 'harp': oscillator.type = 'sine'; break;
@@ -546,7 +530,6 @@
                 case 'drums': oscillator.type = 'square'; break;
                 default: oscillator.type = 'sine';
             }
-            
             oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
             gainNode.gain.setValueAtTime(0, audioContext.currentTime);
             gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
@@ -555,17 +538,16 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
 
-        // Chapter 3 - Glitter Particles
+        // Ch. 3 Functions
+        let particlesActive = false;
+        let particles = [];
         function initGlitterParticles() {
             if (particlesActive) return;
             particlesActive = true;
-            
             const pCanvas = document.getElementById('particles');
             if (!pCanvas) return;
-            
             const pCtx = pCanvas.getContext('2d');
             particles = [];
-            
             for (let i = 0; i < 50; i++) {
                 particles.push({
                     x: Math.random() * pCanvas.width,
@@ -576,7 +558,6 @@
                     size: Math.random() * 4 + 2
                 });
             }
-            
             function animateParticles() {
                 if (!particlesActive) return;
                 pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
@@ -594,7 +575,7 @@
             }
             animateParticles();
         }
-        
+
         function healWithDraw() {
             const message = document.getElementById('quest-message');
             message.textContent = 'Your drawing heals the glitches! Glitter sparkles return – Raaarrr turns pink with joy!';
@@ -602,7 +583,7 @@
             glitterCanvas.style.boxShadow = '0 0 20px #ff6b9d';
             setTimeout(() => glitterCanvas.style.boxShadow = 'none', 1500);
         }
-        
+
         function harmonizeWithMusic() {
             initAudio();
             const freqs = [440, 523, 659, 784];
@@ -610,29 +591,20 @@
             document.getElementById('quest-message').textContent = 'Harmony restores the galaxy! Raaarrr's scales swirl blue-calm.';
         }
 
-        // Chapter 4 - Build Functions
+        // Ch. 4 Functions
         let lightOn = true;
-        
-        function clearBuildCanvas() {
-            const buildCanvas = document.getElementById('build-canvas');
-            const buildCtx = buildCanvas.getContext('2d');
-            buildCtx.clearRect(0, 0, buildCanvas.width, buildCanvas.height);
-            document.getElementById('build-message').textContent = '';
-        }
-        
         function toggleLight() {
             lightOn = !lightOn;
             const status = document.getElementById('light-status');
             const message = document.getElementById('build-message');
             initAudio();
-            
             if (lightOn) {
-                status.textContent = '🟢 GO - Launch Sequence Active!';
+                status.innerHTML = '🟢 GO - Launch Sequence Active!';
                 status.className = 'light-status light-green';
                 playTone(523, 0.5, 'sine');
                 message.textContent = 'Green light! Buggy rolls, tower signals—adventure awaits!';
             } else {
-                status.textContent = '🔴 STOP - Safety Check!';
+                status.innerHTML = '🔴 STOP - Safety Check!';
                 status.className = 'light-status light-red';
                 playTone(392, 0.5, 'square');
                 message.textContent = 'Red light! Pause for wisdom—balance before build.';
@@ -645,71 +617,91 @@
             const buildCanvas = document.getElementById('build-canvas');
             buildCanvas.style.boxShadow = '0 0 30px #00ff00';
             initLaunchParticles();
-setTimeout(() => buildCanvas.style.boxShadow = 'none', 2000);
-}
+            setTimeout(() => buildCanvas.style.boxShadow = 'none', 2000);
+        }
+
         let launchParticles = [];
-    function initLaunchParticles() {
-        const pCanvas = document.getElementById('launch-particles');
-        if (!pCanvas) return;
-        const pCtx = pCanvas.getContext('2d');
-        launchParticles = [];
-        
-        for (let i = 0; i < 30; i++) {
-            launchParticles.push({
-                x: pCanvas.width / 2,
-                y: pCanvas.height / 2,
-                vx: (Math.random() - 0.5) * 10,
-                vy: (Math.random() - 0.5) * 10 - 5,
-                color: '#00ff00',
-                size: Math.random() * 3 + 1,
-                life: 100
-            });
+        function initLaunchParticles() {
+            const pCanvas = document.getElementById('launch-particles');
+            if (!pCanvas) return;
+            const pCtx = pCanvas.getContext('2d');
+            launchParticles = [];
+            for (let i = 0; i < 30; i++) {
+                launchParticles.push({
+                    x: pCanvas.width / 2,
+                    y: pCanvas.height / 2,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10 - 5,
+                    color: '#00ff00',
+                    size: Math.random() * 3 + 1,
+                    life: 100
+                });
+            }
+            function animateLaunch() {
+                pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+                launchParticles = launchParticles.filter(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 1;
+                    pCtx.fillStyle = p.color;
+                    pCtx.beginPath();
+                    pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    pCtx.fill();
+                    return p.life > 0;
+                });
+                if (launchParticles.length > 0) requestAnimationFrame(animateLaunch);
+            }
+            animateLaunch();
         }
-        
-        function animateLaunch() {
-            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-            launchParticles = launchParticles.filter(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 1;
-                pCtx.fillStyle = p.color;
-                pCtx.beginPath();
-                pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                pCtx.fill();
-                return p.life > 0;
-            });
-            if (launchParticles.length > 0) requestAnimationFrame(animateLaunch);
+
+        function shareBuild() {
+            const canvasData = document.getElementById('build-canvas').toDataURL();
+            const shareText = 'Check my moon base from Little X Book 2! 🦖🚀';
+            if (navigator.share) {
+                navigator.share({ title: 'My Dino Build', text: shareText, url: window.location.href });
+            } else {
+                alert(shareText + '\nCopy URL to share!');
+            }
         }
-        animateLaunch();
-    }
 
-    function shareBuild() {
-        const drawingData = document.getElementById('build-canvas').toDataURL();
-        const shareText = 'Check my moon base from Little X Book 2! 🦖🚀';
-        if (navigator.share) {
-            navigator.share({ title: 'My Dino Build', text: shareText, url: window.location.href })
-                .catch(() => alert(shareText + '\nCopy this URL to share!'));
-        } else {
-            alert(shareText + '\nCopy this URL to share: ' + window.location.href);
+        // Progress
+        function saveProgress(chapter) {
+            localStorage.setItem('littleXProgress', chapter);
         }
-    }
 
-    // Progress Management
-    function saveProgress(chapter) {
-        localStorage.setItem('littleXProgress', chapter);
-    }
-
-    function loadProgress() {
-        const saved = localStorage.getItem('littleXProgress');
-        if (saved) {
-            loadChapter(parseInt(saved));
+        function loadProgress() {
+            const saved = localStorage.getItem('littleXProgress');
+            if (saved) loadChapter(parseInt(saved));
         }
-    }
 
-    // Initialize
-    createStars();
-    loadProgress();
-    console.log('Little X Book 2 - All 4 Chapters Ready!');
-</script>
+        // Navigation
+        function loadChapter(chapterNum) {
+            particlesActive = false;
+            document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
+            document.getElementById('chapter' + chapterNum).style.display = 'block';
+            window.scrollTo(0, 0);
+            if (chapterNum === 3) {
+                setTimeout(initGlitterParticles, 100);
+            }
+            if (chapterNum === 4) {
+                setupDrawing('build-canvas');
+                lightOn = true;
+            } else if (chapterNum === 1) {
+                setupDrawing('chalkboard');
+            } else if (chapterNum === 2) {
+                // No canvas switch needed
+            }
+        }
+
+        function nextChapter() {
+            saveProgress(1);
+            loadChapter(2);
+        }
+
+        // Init
+        createStars();
+        loadProgress();
+        console.log('Little X Book 2 Full Arc Live!');
+    </script>
 </body>
 </html>
