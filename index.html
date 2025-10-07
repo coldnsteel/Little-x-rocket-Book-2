@@ -135,6 +135,14 @@
             pointer-events: none;
             z-index: 5;
         }
+        .sound-notice {
+            text-align: center;
+            margin: 20px;
+            padding: 15px;
+            background: rgba(138, 43, 226, 0.2);
+            border-radius: 10px;
+            border: 2px solid #8a2be2;
+        }
         @media (max-width: 600px) {
             h1 { font-size: 2em; }
             .chapter { padding: 20px; }
@@ -150,6 +158,13 @@
         
         <div class="chapter" id="chapter1">
             <h2>Chapter 1: The Cosmic Chalkboard</h2>
+            
+            <div class="sound-notice">
+                <button class="btn" onclick="enableAllAudio()" style="font-size: 18px; padding: 15px 30px;">
+                    🔊 Enable Adventure Sounds!
+                </button>
+                <p style="margin-top: 10px; font-size: 14px;">Click to hear Raaarrr roar and ARIA whisper!</p>
+            </div>
             
             <div class="story-text">
                 <p>Little X stepped into Uncle Harold's workshop, still thinking about the amazing adventures with ARIA and the purple rocket. The room was filled with fascinating gadgets and glowing instruments, but one thing caught Little X's eye immediately.</p>
@@ -332,6 +347,28 @@
                 <p>Draw your buggy/tower/control (wheels, antenna, buttons). Click blocks to place, toggle lights for launch!</p>
                 <canvas id="build-canvas" width="600" height="400"></canvas>
                 <canvas id="launch-particles" width="600" height="400"></canvas>
+                
+                <!-- VOICE AUDIO FILES -->
+                <audio id="raaarrr-audio" preload="auto">
+                    <source src="raaarrr-moon-buggy.mp3" type="audio/mpeg">
+                </audio>
+                <audio id="aria-teamwork-audio" preload="auto">
+                    <source src="aria-teamwork.mp3" type="audio/mpeg">
+                </audio>
+                <audio id="aria-pause-audio" preload="auto">
+                    <source src="aria-pause.mp3" type="audio/mpeg">
+                </audio>
+                <audio id="raaarrr-intro-audio" preload="auto">
+                    <source src="raaarrr-intro.mp3" type="audio/mpeg">
+                </audio>
+                <audio id="aria-intro-audio" preload="auto">
+                    <source src="aria-intro.mp3" type="audio/mpeg">
+                </audio>
+                <audio id="raaarrr-oops-audio" preload="auto">
+                    <source src="raaarrr-oops.mp3" type="audio/mpeg">
+                </audio>
+                <!-- END VOICE AUDIO -->
+                
                 <div class="build-blocks">
                     <button class="btn" onclick="placeBlock('wheel')">🚗 Wheel (Buggy)</button>
                     <button class="btn" onclick="placeBlock('antenna')">📡 Antenna (Tower)</button>
@@ -538,7 +575,7 @@
         }
 
         function playTone(frequency, duration, instrument) {
-            initAudio(); // Ensure resumed
+            initAudio();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
             oscillator.connect(gainNode);
@@ -621,20 +658,36 @@
         }
         
         function toggleLight() {
-            lightOn = !lightOn; // Single flip - fixed!
+            lightOn = !lightOn;
             const status = document.getElementById('light-status');
             const message = document.getElementById('build-message');
             initAudio();
+            
             if (lightOn) {
                 status.innerHTML = '🟢 GO - Launch Sequence Active!';
                 status.className = 'light-status light-green';
                 playTone(523, 0.5, 'sine');
                 message.textContent = 'Green light! Buggy rolls, tower signals—adventure awaits!';
+                
+                // 🦖 Play Raaarrr roar!
+                const raaaarrrAudio = document.getElementById('raaarrr-audio');
+                if (raaaarrrAudio) {
+                    raaaarrrAudio.currentTime = 0;
+                    raaaarrrAudio.play().catch(e => console.log('Raaarrr audio:', e));
+                }
+                
             } else {
                 status.innerHTML = '🔴 STOP - Safety Check!';
                 status.className = 'light-status light-red';
                 playTone(392, 0.5, 'square');
                 message.textContent = 'Red light! Pause for wisdom—balance before build.';
+                
+                // ✨ Play ARIA wisdom
+                const ariaAudio = document.getElementById('aria-pause-audio');
+                if (ariaAudio) {
+                    ariaAudio.currentTime = 0;
+                    ariaAudio.play().catch(e => console.log('ARIA audio:', e));
+                }
             }
         }
 
@@ -691,6 +744,20 @@
             }
         }
 
+        // Enable All Audio (for browser autoplay restrictions)
+        function enableAllAudio() {
+            initAudio();
+            // Touch all audio elements to unlock them
+            ['raaarrr-audio', 'aria-teamwork-audio', 'aria-pause-audio', 
+             'raaarrr-intro-audio', 'aria-intro-audio', 'raaarrr-oops-audio'].forEach(id => {
+                const audio = document.getElementById(id);
+                if (audio) {
+                    audio.play().then(() => audio.pause()).catch(e => {});
+                }
+            });
+            alert('🎵 Sound enabled! Voices will play throughout your adventure!');
+        }
+
         // Progress
         function saveProgress(chapter) {
             localStorage.setItem('littleXProgress', chapter);
@@ -707,17 +774,31 @@
             document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
             document.getElementById('chapter' + chapterNum).style.display = 'block';
             window.scrollTo(0, 0);
-            if (chapterNum === 3) {
+            
+            if (chapterNum === 2) {
+                // 🦖 Play Raaarrr intro
+                setTimeout(() => {
+                    const raaaarrrIntro = document.getElementById('raaarrr-intro-audio');
+                    if (raaaarrrIntro) {
+                        raaaarrrIntro.play().catch(e => console.log('Raaarrr intro:', e));
+                    }
+                }, 500);
+            } else if (chapterNum === 3) {
                 setTimeout(initGlitterParticles, 100);
-                setupDrawing('glitter-canvas'); // Fixed: Enable draw on Ch3
-            }
-            if (chapterNum === 4) {
+                setupDrawing('glitter-canvas');
+            } else if (chapterNum === 4) {
                 setupDrawing('build-canvas');
                 lightOn = true;
+                
+                // ✨ Play ARIA intro
+                setTimeout(() => {
+                    const ariaIntro = document.getElementById('aria-intro-audio');
+                    if (ariaIntro) {
+                        ariaIntro.play().catch(e => console.log('ARIA intro:', e));
+                    }
+                }, 1000);
             } else if (chapterNum === 1) {
                 setupDrawing('chalkboard');
-            } else if (chapterNum === 2) {
-                // No canvas switch needed
             }
         }
 
@@ -729,15 +810,14 @@
         // Init (FIXED VERSION)
         window.addEventListener('DOMContentLoaded', function() {
             createStars();
-            setupDrawing('chalkboard');  // Initialize Ch 1 drawing
-            ensureTouchSupport();  // Ensure touch ready
+            setupDrawing('chalkboard');
+            ensureTouchSupport();
 
             // Force canvas to be ready
             setTimeout(() => {
                 const canvas = document.getElementById('chalkboard');
                 if (canvas) {
                     console.log('Canvas ready:', canvas.width, canvas.height);
-                    // Add a visual hint
                     const ctx = canvas.getContext('2d');
                     ctx.strokeStyle = '#8a2be2';
                     ctx.lineWidth = 2;
@@ -748,7 +828,7 @@
             }, 100);
             
             loadProgress();
-            console.log('Little X Book 2 Full Arc Live!');
+            console.log('Little X Book 2 - Voices Live! 🦖🎤✨');
         });
     </script>
 </body>
