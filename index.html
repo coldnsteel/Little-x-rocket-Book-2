@@ -392,6 +392,10 @@
             if (!currentCanvas) return;
             currentCtx = currentCanvas.getContext('2d');
 
+            // Fill background
+            currentCtx.fillStyle = '#1a1a2e';
+            currentCtx.fillRect(0, 0, currentCanvas.width, currentCanvas.height);
+
             currentCanvas.addEventListener('mousedown', startDrawing);
             currentCanvas.addEventListener('mousemove', draw);
             currentCanvas.addEventListener('mouseup', stopDrawing);
@@ -402,6 +406,7 @@
         }
 
         function startDrawing(e) {
+            if (e.type === 'touchstart') e.preventDefault();
             isDrawing = true;
             const rect = currentCanvas.getBoundingClientRect();
             lastX = e.clientX - rect.left;
@@ -458,9 +463,20 @@
             [lastX, lastY] = [x, y];
         }
 
+        // Ensure Touch Support
+        function ensureTouchSupport() {
+            if (currentCanvas) {
+                currentCanvas.style.touchAction = 'none';
+                currentCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+                currentCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            }
+        }
+
         // Ch. 1 Functions
         function clearBoard() {
             currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
+            currentCtx.fillStyle = '#1a1a2e';
+            currentCtx.fillRect(0, 0, currentCanvas.width, currentCanvas.height);
             document.getElementById('drawing-message').textContent = '';
         }
 
@@ -486,6 +502,9 @@
         function initAudio() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
             }
         }
 
@@ -519,6 +538,7 @@
         }
 
         function playTone(frequency, duration, instrument) {
+            initAudio(); // Ensure resumed
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
             oscillator.connect(gainNode);
@@ -601,8 +621,7 @@
         }
         
         function toggleLight() {
-            lightOn = !lightOn;
-            lightOn = !lightOn;
+            lightOn = !lightOn; // Single flip - fixed!
             const status = document.getElementById('light-status');
             const message = document.getElementById('build-message');
             initAudio();
@@ -690,6 +709,7 @@
             window.scrollTo(0, 0);
             if (chapterNum === 3) {
                 setTimeout(initGlitterParticles, 100);
+                setupDrawing('glitter-canvas'); // Fixed: Enable draw on Ch3
             }
             if (chapterNum === 4) {
                 setupDrawing('build-canvas');
@@ -706,11 +726,30 @@
             loadChapter(2);
         }
 
-        // Init
-        createStars();
-        setupDrawing('chalkboard');  // Initialize Ch 1 drawing on load
-        loadProgress();
-        console.log('Little X Book 2 Full Arc Live!');
+        // Init (FIXED VERSION)
+        window.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            setupDrawing('chalkboard');  // Initialize Ch 1 drawing
+            ensureTouchSupport();  // Ensure touch ready
+
+            // Force canvas to be ready
+            setTimeout(() => {
+                const canvas = document.getElementById('chalkboard');
+                if (canvas) {
+                    console.log('Canvas ready:', canvas.width, canvas.height);
+                    // Add a visual hint
+                    const ctx = canvas.getContext('2d');
+                    ctx.strokeStyle = '#8a2be2';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+                    ctx.setLineDash([]);
+                }
+            }, 100);
+            
+            loadProgress();
+            console.log('Little X Book 2 Full Arc Live!');
+        });
     </script>
 </body>
 </html>
