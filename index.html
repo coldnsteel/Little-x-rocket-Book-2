@@ -593,7 +593,15 @@
 
         // Ch. 4 Functions
         let lightOn = true;
+        
+        function placeBlock(type) {
+            const message = document.getElementById('build-message');
+            const blocks = { wheel: '🚗', antenna: '📡', button: '🔘' };
+            message.textContent = `Placed ${blocks[type]}! Draw to connect it to your moon base.`;
+        }
+        
         function toggleLight() {
+            lightOn = !lightOn;
             lightOn = !lightOn;
             const status = document.getElementById('light-status');
             const message = document.getElementById('build-message');
@@ -700,6 +708,7 @@
 
         // Init
         createStars();
+        setupDrawing('chalkboard');  // Initialize Ch 1 drawing on load
         loadProgress();
         console.log('Little X Book 2 Full Arc Live!');
     </script>
