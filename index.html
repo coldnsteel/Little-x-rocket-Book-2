@@ -151,6 +151,27 @@
 </head>
 <body>
     <div id="stars-container"></div>
+
+    <!-- VOICE AUDIO FILES MOVED TOP FOR EARLY ACCESS -->
+    <audio id="raaarrr-audio" preload="auto">
+        <source src="raaarrr-moon-buggy.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="aria-teamwork-audio" preload="auto">
+        <source src="aria-teamwork.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="aria-pause-audio" preload="auto">
+        <source src="aria-pause.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="raaarrr-intro-audio" preload="auto">
+        <source src="raaarrr-intro.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="aria-intro-audio" preload="auto">
+        <source src="aria-intro.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="raaarrr-oops-audio" preload="auto">
+        <source src="raaarrr-oops.mp3" type="audio/mpeg">
+    </audio>
+    <!-- END VOICE AUDIO -->
     
     <div class="container">
         <h1>Little X and the Dinosaur Dream Machine</h1>
@@ -348,27 +369,6 @@
                 <canvas id="build-canvas" width="600" height="400"></canvas>
                 <canvas id="launch-particles" width="600" height="400"></canvas>
                 
-                <!-- VOICE AUDIO FILES -->
-                <audio id="raaarrr-audio" preload="auto">
-                    <source src="raaarrr-moon-buggy.mp3" type="audio/mpeg">
-                </audio>
-                <audio id="aria-teamwork-audio" preload="auto">
-                    <source src="aria-teamwork.mp3" type="audio/mpeg">
-                </audio>
-                <audio id="aria-pause-audio" preload="auto">
-                    <source src="aria-pause.mp3" type="audio/mpeg">
-                </audio>
-                <audio id="raaarrr-intro-audio" preload="auto">
-                    <source src="raaarrr-intro.mp3" type="audio/mpeg">
-                </audio>
-                <audio id="aria-intro-audio" preload="auto">
-                    <source src="aria-intro.mp3" type="audio/mpeg">
-                </audio>
-                <audio id="raaarrr-oops-audio" preload="auto">
-                    <source src="raaarrr-oops.mp3" type="audio/mpeg">
-                </audio>
-                <!-- END VOICE AUDIO -->
-                
                 <div class="build-blocks">
                     <button class="btn" onclick="placeBlock('wheel')">🚗 Wheel (Buggy)</button>
                     <button class="btn" onclick="placeBlock('antenna')">📡 Antenna (Tower)</button>
@@ -426,35 +426,41 @@
 
         function setupDrawing(canvasId) {
             currentCanvas = document.getElementById(canvasId);
-            if (!currentCanvas) return;
+            if (!currentCanvas) {
+                console.error('Canvas not found:', canvasId);
+                return;
+            }
             currentCtx = currentCanvas.getContext('2d');
 
             // Fill background
             currentCtx.fillStyle = '#1a1a2e';
             currentCtx.fillRect(0, 0, currentCanvas.width, currentCanvas.height);
 
+            // Attach listeners
             currentCanvas.addEventListener('mousedown', startDrawing);
             currentCanvas.addEventListener('mousemove', draw);
             currentCanvas.addEventListener('mouseup', stopDrawing);
             currentCanvas.addEventListener('mouseout', stopDrawing);
-            currentCanvas.addEventListener('touchstart', handleTouchStart);
-            currentCanvas.addEventListener('touchmove', handleTouchMove);
+            currentCanvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+            currentCanvas.addEventListener('touchmove', handleTouchMove, {passive: false});
             currentCanvas.addEventListener('touchend', stopDrawing);
+            console.log('Listeners attached to canvas:', canvasId);
         }
 
         function startDrawing(e) {
             if (e.type === 'touchstart') e.preventDefault();
             isDrawing = true;
             const rect = currentCanvas.getBoundingClientRect();
-            lastX = e.clientX - rect.left;
-            lastY = e.clientY - rect.top;
+            lastX = (e.clientX || e.touches[0].clientX) - rect.left;
+            lastY = (e.clientY || e.touches[0].clientY) - rect.top;
+            console.log('Drawing started at', lastX, lastY);
         }
 
         function draw(e) {
             if (!isDrawing) return;
             const rect = currentCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
             
             currentCtx.strokeStyle = '#8a2be2';
             currentCtx.lineWidth = 3;
@@ -470,47 +476,28 @@
 
         function stopDrawing() {
             isDrawing = false;
+            console.log('Drawing stopped');
         }
 
         function handleTouchStart(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = currentCanvas.getBoundingClientRect();
-            lastX = touch.clientX - rect.left;
-            lastY = touch.clientY - rect.top;
-            isDrawing = true;
+            startDrawing(e);
         }
 
         function handleTouchMove(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = currentCanvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            currentCtx.strokeStyle = '#8a2be2';
-            currentCtx.lineWidth = 3;
-            currentCtx.lineCap = 'round';
-            currentCtx.shadowBlur = 10;
-            currentCtx.shadowColor = '#8a2be2';
-            currentCtx.beginPath();
-            currentCtx.moveTo(lastX, lastY);
-            currentCtx.lineTo(x, y);
-            currentCtx.stroke();
-            [lastX, lastY] = [x, y];
+            draw(e);
         }
 
         // Ensure Touch Support
         function ensureTouchSupport() {
             if (currentCanvas) {
                 currentCanvas.style.touchAction = 'none';
-                currentCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-                currentCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+                console.log('Touch support ensured');
             }
         }
 
         // Ch. 1 Functions
         function clearBoard() {
+            if (!currentCtx) return;
             currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
             currentCtx.fillStyle = '#1a1a2e';
             currentCtx.fillRect(0, 0, currentCanvas.width, currentCanvas.height);
@@ -752,10 +739,11 @@
              'raaarrr-intro-audio', 'aria-intro-audio', 'raaarrr-oops-audio'].forEach(id => {
                 const audio = document.getElementById(id);
                 if (audio) {
-                    audio.play().then(() => audio.pause()).catch(e => {});
+                    audio.play().then(() => audio.pause()).catch(e => console.log('Audio unlock:', e));
                 }
             });
             alert('🎵 Sound enabled! Voices will play throughout your adventure!');
+            console.log('All audio unlocked');
         }
 
         // Progress
@@ -770,41 +758,52 @@
 
         // Navigation
         function loadChapter(chapterNum) {
-            particlesActive = false;
-            document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
-            document.getElementById('chapter' + chapterNum).style.display = 'block';
-            window.scrollTo(0, 0);
-            
-            if (chapterNum === 2) {
-                // 🦖 Play Raaarrr intro
-                setTimeout(() => {
-                    const raaaarrrIntro = document.getElementById('raaarrr-intro-audio');
-                    if (raaaarrrIntro) {
-                        raaaarrrIntro.play().catch(e => console.log('Raaarrr intro:', e));
-                    }
-                }, 500);
-            } else if (chapterNum === 3) {
-                setTimeout(initGlitterParticles, 100);
-                setupDrawing('glitter-canvas');
-            } else if (chapterNum === 4) {
-                setupDrawing('build-canvas');
-                lightOn = true;
+            try {
+                particlesActive = false;
+                document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
+                const targetChapter = document.getElementById('chapter' + chapterNum);
+                if (targetChapter) {
+                    targetChapter.style.display = 'block';
+                    window.scrollTo(0, 0);
+                    console.log('Loaded chapter', chapterNum);
+                } else {
+                    console.error('Chapter not found:', chapterNum);
+                }
                 
-                // ✨ Play ARIA intro
-                setTimeout(() => {
-                    const ariaIntro = document.getElementById('aria-intro-audio');
-                    if (ariaIntro) {
-                        ariaIntro.play().catch(e => console.log('ARIA intro:', e));
-                    }
-                }, 1000);
-            } else if (chapterNum === 1) {
-                setupDrawing('chalkboard');
+                if (chapterNum === 2) {
+                    // 🦖 Play Raaarrr intro
+                    setTimeout(() => {
+                        const raaaarrrIntro = document.getElementById('raaarrr-intro-audio');
+                        if (raaaarrrIntro) {
+                            raaaarrrIntro.play().catch(e => console.log('Raaarrr intro:', e));
+                        }
+                    }, 500);
+                } else if (chapterNum === 3) {
+                    setTimeout(initGlitterParticles, 100);
+                    setupDrawing('glitter-canvas');
+                } else if (chapterNum === 4) {
+                    setupDrawing('build-canvas');
+                    lightOn = true;
+                    
+                    // ✨ Play ARIA intro
+                    setTimeout(() => {
+                        const ariaIntro = document.getElementById('aria-intro-audio');
+                        if (ariaIntro) {
+                            ariaIntro.play().catch(e => console.log('ARIA intro:', e));
+                        }
+                    }, 1000);
+                } else if (chapterNum === 1) {
+                    setupDrawing('chalkboard');
+                }
+            } catch (e) {
+                console.error('Load chapter error:', e);
             }
         }
 
         function nextChapter() {
             saveProgress(1);
             loadChapter(2);
+            console.log('Next chapter triggered');
         }
 
         // Init (FIXED VERSION)
