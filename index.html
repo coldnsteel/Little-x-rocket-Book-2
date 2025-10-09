@@ -23,6 +23,18 @@
             0% { opacity: 0.3; transform: scale(1); }
             100% { opacity: 1; transform: scale(1.2); }
         }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-5px, -5px) rotate(-2deg); }
+            20% { transform: translate(5px, -5px) rotate(2deg); }
+            30% { transform: translate(-5px, 5px) rotate(-2deg); }
+            40% { transform: translate(5px, 5px) rotate(2deg); }
+            50% { transform: translate(-5px, -5px) rotate(-2deg); }
+            60% { transform: translate(5px, -5px) rotate(2deg); }
+            70% { transform: translate(-5px, 5px) rotate(-2deg); }
+            80% { transform: translate(5px, 5px) rotate(2deg); }
+            90% { transform: translate(-5px, 0) rotate(-1deg); }
+        }
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -509,9 +521,17 @@
             var message = document.getElementById('drawing-message');
             message.textContent = 'Your drawing glows with cosmic energy! Something magical is about to happen...';
             currentCanvas.style.boxShadow = '0 0 30px #8a2be2, 0 0 50px #ff6b9d';
+            currentCanvas.style.animation = 'shake 0.8s ease-in-out';
+            
+            // Play magical sound
+            playTone(440, 0.3, 'sine');
+            setTimeout(function() { playTone(523, 0.3, 'sine'); }, 300);
+            setTimeout(function() { playTone(659, 0.3, 'sine'); }, 600);
+            
             setTimeout(function() {
                 currentCanvas.style.boxShadow = 'none';
-                message.textContent = 'Ready for Chapter 2 to see what happens next!';
+                currentCanvas.style.animation = '';
+                message.textContent = '🦖 Ready for Chapter 2 to see what happens next!';
             }, 2000);
         }
 
