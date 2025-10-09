@@ -67,6 +67,7 @@
             cursor: crosshair;
             display: block;
             margin: 20px auto;
+            touch-action: none;
         }
         #glitter-canvas {
             background: linear-gradient(to bottom, #ff6b9d, #8a2be2);
@@ -87,10 +88,10 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
         }
-        .controls, .instruments, .toggle-controls {
+        .controls, .instruments, .toggle-controls, .build-blocks {
             margin-top: 15px;
         }
-        .instruments, .toggle-controls {
+        .instruments, .toggle-controls, .build-blocks {
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -143,16 +144,22 @@
             border-radius: 10px;
             border: 2px solid #8a2be2;
         }
+        #raaarrr-character {
+            font-size: 100px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            display: inline-block;
+        }
         @media (max-width: 600px) {
             h1 { font-size: 2em; }
             .chapter { padding: 20px; }
+            canvas { max-width: 100%; height: auto; }
         }
     </style>
 </head>
 <body>
     <div id="stars-container"></div>
 
-    <!-- VOICE AUDIO FILES MOVED TOP FOR EARLY ACCESS -->
     <audio id="raaarrr-audio" preload="auto">
         <source src="raaarrr-moon-buggy.mp3" type="audio/mpeg">
     </audio>
@@ -171,7 +178,6 @@
     <audio id="raaarrr-oops-audio" preload="auto">
         <source src="raaarrr-oops.mp3" type="audio/mpeg">
     </audio>
-    <!-- END VOICE AUDIO -->
     
     <div class="container">
         <h1>Little X and the Dinosaur Dream Machine</h1>
@@ -294,7 +300,7 @@
             </div>
             
             <div class="nav-buttons">
-                <button class="btn" onclick="saveProgress(2); loadChapter(3)">Continue to Chapter 3</button>
+                <button class="btn" onclick="saveProgress(2); vortexToChapter3()">Continue to Chapter 3</button>
                 <button class="btn" onclick="loadChapter(1)">Back to Chapter 1</button>
             </div>
         </div>
@@ -367,7 +373,7 @@
                 <h3>Collab Build: Moon Base Adventure!</h3>
                 <p>Draw your buggy/tower/control (wheels, antenna, buttons). Click blocks to place, toggle lights for launch!</p>
                 <canvas id="build-canvas" width="600" height="400"></canvas>
-                <canvas id="launch-particles" width="600" height="400"></canvas>
+                <canvas id="launch-particles" width="600" height="400" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); pointer-events: none;"></canvas>
                 
                 <div class="build-blocks">
                     <button class="btn" onclick="placeBlock('wheel')">🚗 Wheel (Buggy)</button>
@@ -403,10 +409,22 @@
     </div>
 
     <script>
+        var isDrawing = false;
+        var lastX = 0;
+        var lastY = 0;
+        var currentCanvas = null;
+        var currentCtx = null;
+        var currentDinoInstrument = null;
+        var audioContext = null;
+        var lightOn = true;
+        var particlesActive = false;
+        var particles = [];
+        var launchParticles = [];
+
         function createStars() {
-            const container = document.getElementById('stars-container');
-            for (let i = 0; i < 50; i++) {
-                const star = document.createElement('div');
+            var container = document.getElementById('stars-container');
+            for (var i = 0; i < 50; i++) {
+                var star = document.createElement('div');
                 star.className = 'star';
                 star.style.width = Math.random() * 3 + 1 + 'px';
                 star.style.height = star.style.width;
@@ -417,13 +435,6 @@
             }
         }
 
-        // Global Drawing Setup
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
-        let currentCanvas = null;
-        let currentCtx = null;
-
         function setupDrawing(canvasId) {
             currentCanvas = document.getElementById(canvasId);
             if (!currentCanvas) {
@@ -431,12 +442,8 @@
                 return;
             }
             currentCtx = currentCanvas.getContext('2d');
-
-            // Fill background
             currentCtx.fillStyle = '#1a1a2e';
             currentCtx.fillRect(0, 0, currentCanvas.width, currentCanvas.height);
-
-            // Attach listeners
             currentCanvas.addEventListener('mousedown', startDrawing);
             currentCanvas.addEventListener('mousemove', draw);
             currentCanvas.addEventListener('mouseup', stopDrawing);
@@ -444,24 +451,21 @@
             currentCanvas.addEventListener('touchstart', handleTouchStart, {passive: false});
             currentCanvas.addEventListener('touchmove', handleTouchMove, {passive: false});
             currentCanvas.addEventListener('touchend', stopDrawing);
-            console.log('Listeners attached to canvas:', canvasId);
         }
 
         function startDrawing(e) {
             if (e.type === 'touchstart') e.preventDefault();
             isDrawing = true;
-            const rect = currentCanvas.getBoundingClientRect();
+            var rect = currentCanvas.getBoundingClientRect();
             lastX = (e.clientX || e.touches[0].clientX) - rect.left;
             lastY = (e.clientY || e.touches[0].clientY) - rect.top;
-            console.log('Drawing started at', lastX, lastY);
         }
 
         function draw(e) {
             if (!isDrawing) return;
-            const rect = currentCanvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            
+            var rect = currentCanvas.getBoundingClientRect();
+            var x = (e.clientX || e.touches[0].clientX) - rect.left;
+            var y = (e.clientY || e.touches[0].clientY) - rect.top;
             currentCtx.strokeStyle = '#8a2be2';
             currentCtx.lineWidth = 3;
             currentCtx.lineCap = 'round';
@@ -471,12 +475,12 @@
             currentCtx.moveTo(lastX, lastY);
             currentCtx.lineTo(x, y);
             currentCtx.stroke();
-            [lastX, lastY] = [x, y];
+            lastX = x;
+            lastY = y;
         }
 
         function stopDrawing() {
             isDrawing = false;
-            console.log('Drawing stopped');
         }
 
         function handleTouchStart(e) {
@@ -487,15 +491,12 @@
             draw(e);
         }
 
-        // Ensure Touch Support
         function ensureTouchSupport() {
             if (currentCanvas) {
                 currentCanvas.style.touchAction = 'none';
-                console.log('Touch support ensured');
             }
         }
 
-        // Ch. 1 Functions
         function clearBoard() {
             if (!currentCtx) return;
             currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
@@ -505,23 +506,19 @@
         }
 
         function bringToLife() {
-            const message = document.getElementById('drawing-message');
+            var message = document.getElementById('drawing-message');
             message.textContent = 'Your drawing glows with cosmic energy! Something magical is about to happen...';
             currentCanvas.style.boxShadow = '0 0 30px #8a2be2, 0 0 50px #ff6b9d';
-            setTimeout(() => {
+            setTimeout(function() {
                 currentCanvas.style.boxShadow = 'none';
                 message.textContent = 'Ready for Chapter 2 to see what happens next!';
             }, 2000);
         }
 
         function saveDrawing() {
-            const message = document.getElementById('drawing-message');
+            var message = document.getElementById('drawing-message');
             message.textContent = 'Your cosmic creation has been saved to the eternal memory banks!';
         }
-
-        // Ch. 2 Functions
-        let currentDinoInstrument = null;
-        let audioContext = null;
 
         function initAudio() {
             if (!audioContext) {
@@ -535,15 +532,14 @@
         function selectDinoInstrument(instrument) {
             initAudio();
             currentDinoInstrument = instrument;
-            const messages = {
+            var messages = {
                 piano: "🎹 Raaarrr touches the Cosmic Piano and it sparkles!",
                 harp: "🪕 The Star Harp glows as Raaarrr plucks its strings!",
                 flute: "🪈 Raaarrr's breath makes the Nebula Flute sing!",
                 drums: "🥁 Raaarrr taps the Galaxy Drums with his tail!"
             };
             document.getElementById('instrument-message').textContent = messages[instrument];
-            const freq = 440;
-            playTone(freq, 0.5, instrument);
+            playTone(440, 0.5, instrument);
         }
 
         function playRaaaarrrSound() {
@@ -551,11 +547,19 @@
                 document.getElementById('instrument-message').textContent = "Choose an instrument first!";
                 return;
             }
-            const raaarrr = document.getElementById('raaarrr-character');
+            var raaarrr = document.getElementById('raaarrr-character');
             raaarrr.style.transform = 'scale(1.2) rotate(5deg)';
             initAudio();
             playTone(200 + Math.random() * 200, 0.3, currentDinoInstrument);
-            setTimeout(() => {
+            
+            // Play Raaarrr intro audio
+            var audio = document.getElementById('raaarrr-intro-audio');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(function(e) { console.log('Raaarrr audio:', e); });
+            }
+            
+            setTimeout(function() {
                 raaarrr.style.transform = 'scale(1) rotate(0deg)';
             }, 300);
             document.getElementById('instrument-message').textContent = "RAAARRR! 🎵 Musical magic!";
@@ -563,8 +567,8 @@
 
         function playTone(frequency, duration, instrument) {
             initAudio();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            var oscillator = audioContext.createOscillator();
+            var gainNode = audioContext.createGain();
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
             switch(instrument) {
@@ -582,30 +586,28 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
 
-        // Ch. 3 Functions
-        let particlesActive = false;
-        let particles = [];
         function initGlitterParticles() {
             if (particlesActive) return;
             particlesActive = true;
-            const pCanvas = document.getElementById('particles');
+            var pCanvas = document.getElementById('particles');
             if (!pCanvas) return;
-            const pCtx = pCanvas.getContext('2d');
+            var pCtx = pCanvas.getContext('2d');
             particles = [];
-            for (let i = 0; i < 50; i++) {
+            for (var i = 0; i < 50; i++) {
                 particles.push({
                     x: Math.random() * pCanvas.width,
                     y: Math.random() * pCanvas.height,
                     vx: (Math.random() - 0.5) * 2,
                     vy: (Math.random() - 0.5) * 2,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+                    color: 'hsl(' + Math.random() * 360 + ', 100%, 70%)',
                     size: Math.random() * 4 + 2
                 });
             }
             function animateParticles() {
                 if (!particlesActive) return;
                 pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-                particles.forEach(p => {
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
                     p.x += p.vx;
                     p.y += p.vy;
                     if (p.x < 0 || p.x > pCanvas.width) p.vx *= -1;
@@ -614,40 +616,41 @@
                     pCtx.beginPath();
                     pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     pCtx.fill();
-                });
+                }
                 requestAnimationFrame(animateParticles);
             }
             animateParticles();
         }
 
         function healWithDraw() {
-            const message = document.getElementById('quest-message');
-            message.textContent = 'Your drawing heals the glitches! Glitter sparkles return – Raaarrr turns pink with joy!';
-            const glitterCanvas = document.getElementById('glitter-canvas');
+            var message = document.getElementById('quest-message');
+            message.textContent = 'Your drawing heals the glitches! Glitter sparkles return!';
+            var glitterCanvas = document.getElementById('glitter-canvas');
             glitterCanvas.style.boxShadow = '0 0 20px #ff6b9d';
-            setTimeout(() => glitterCanvas.style.boxShadow = 'none', 1500);
+            setTimeout(function() { glitterCanvas.style.boxShadow = 'none'; }, 1500);
         }
 
         function harmonizeWithMusic() {
             initAudio();
-            const freqs = [440, 523, 659, 784];
-            freqs.forEach((f, i) => setTimeout(() => playTone(f, 0.8, 'harp'), i * 200));
-            document.getElementById('quest-message').textContent = 'Harmony restores the galaxy! Raaarrr's scales swirl blue-calm.';
+            var freqs = [440, 523, 659, 784];
+            for (var i = 0; i < freqs.length; i++) {
+                (function(f, idx) {
+                    setTimeout(function() { playTone(f, 0.8, 'harp'); }, idx * 200);
+                })(freqs[i], i);
+            }
+            document.getElementById('quest-message').textContent = 'Harmony restores the galaxy!';
         }
 
-        // Ch. 4 Functions
-        let lightOn = true;
-        
         function placeBlock(type) {
-            const message = document.getElementById('build-message');
-            const blocks = { wheel: '🚗', antenna: '📡', button: '🔘' };
-            message.textContent = `Placed ${blocks[type]}! Draw to connect it to your moon base.`;
+            var message = document.getElementById('build-message');
+            var blocks = { wheel: '🚗', antenna: '📡', button: '🔘' };
+            message.textContent = 'Placed ' + blocks[type] + '! Draw to connect it to your moon base.';
         }
-        
+
         function toggleLight() {
             lightOn = !lightOn;
-            const status = document.getElementById('light-status');
-            const message = document.getElementById('build-message');
+            var status = document.getElementById('light-status');
+            var message = document.getElementById('build-message');
             initAudio();
             
             if (lightOn) {
@@ -655,45 +658,47 @@
                 status.className = 'light-status light-green';
                 playTone(523, 0.5, 'sine');
                 message.textContent = 'Green light! Buggy rolls, tower signals—adventure awaits!';
-                
-                // 🦖 Play Raaarrr roar!
-                const raaaarrrAudio = document.getElementById('raaarrr-audio');
+                var raaaarrrAudio = document.getElementById('raaarrr-audio');
                 if (raaaarrrAudio) {
                     raaaarrrAudio.currentTime = 0;
-                    raaaarrrAudio.play().catch(e => console.log('Raaarrr audio:', e));
+                    raaaarrrAudio.play().catch(function(e) { console.log('Raaarrr audio:', e); });
                 }
-                
             } else {
                 status.innerHTML = '🔴 STOP - Safety Check!';
                 status.className = 'light-status light-red';
                 playTone(392, 0.5, 'square');
                 message.textContent = 'Red light! Pause for wisdom—balance before build.';
-                
-                // ✨ Play ARIA wisdom
-                const ariaAudio = document.getElementById('aria-pause-audio');
+                var ariaAudio = document.getElementById('aria-pause-audio');
                 if (ariaAudio) {
                     ariaAudio.currentTime = 0;
-                    ariaAudio.play().catch(e => console.log('ARIA audio:', e));
+                    ariaAudio.play().catch(function(e) { console.log('ARIA audio:', e); });
                 }
             }
         }
 
         function bringBuildToLife() {
-            const message = document.getElementById('build-message');
+            var message = document.getElementById('build-message');
             message.textContent = 'Your moon base activates! Particles launch the buggy—woosh!';
-            const buildCanvas = document.getElementById('build-canvas');
+            var buildCanvas = document.getElementById('build-canvas');
             buildCanvas.style.boxShadow = '0 0 30px #00ff00';
             initLaunchParticles();
-            setTimeout(() => buildCanvas.style.boxShadow = 'none', 2000);
+            
+            // Play ARIA teamwork audio
+            var ariaTeamwork = document.getElementById('aria-teamwork-audio');
+            if (ariaTeamwork) {
+                ariaTeamwork.currentTime = 0;
+                ariaTeamwork.play().catch(function(e) { console.log('ARIA teamwork:', e); });
+            }
+            
+            setTimeout(function() { buildCanvas.style.boxShadow = 'none'; }, 2000);
         }
 
-        let launchParticles = [];
         function initLaunchParticles() {
-            const pCanvas = document.getElementById('launch-particles');
+            var pCanvas = document.getElementById('launch-particles');
             if (!pCanvas) return;
-            const pCtx = pCanvas.getContext('2d');
+            var pCtx = pCanvas.getContext('2d');
             launchParticles = [];
-            for (let i = 0; i < 30; i++) {
+            for (var i = 0; i < 30; i++) {
                 launchParticles.push({
                     x: pCanvas.width / 2,
                     y: pCanvas.height / 2,
@@ -706,7 +711,9 @@
             }
             function animateLaunch() {
                 pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-                launchParticles = launchParticles.filter(p => {
+                var newParticles = [];
+                for (var i = 0; i < launchParticles.length; i++) {
+                    var p = launchParticles[i];
                     p.x += p.vx;
                     p.y += p.vy;
                     p.life -= 1;
@@ -714,16 +721,16 @@
                     pCtx.beginPath();
                     pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     pCtx.fill();
-                    return p.life > 0;
-                });
+                    if (p.life > 0) newParticles.push(p);
+                }
+                launchParticles = newParticles;
                 if (launchParticles.length > 0) requestAnimationFrame(animateLaunch);
             }
             animateLaunch();
         }
 
         function shareBuild() {
-            const canvasData = document.getElementById('build-canvas').toDataURL();
-            const shareText = 'Check my moon base from Little X Book 2! 🦖🚀';
+            var shareText = 'Check my moon base from Little X Book 2! 🦖🚀';
             if (navigator.share) {
                 navigator.share({ title: 'My Dino Build', text: shareText, url: window.location.href });
             } else {
@@ -731,93 +738,87 @@
             }
         }
 
-        // Enable All Audio (for browser autoplay restrictions)
         function enableAllAudio() {
             initAudio();
-            // Touch all audio elements to unlock them
-            ['raaarrr-audio', 'aria-teamwork-audio', 'aria-pause-audio', 
-             'raaarrr-intro-audio', 'aria-intro-audio', 'raaarrr-oops-audio'].forEach(id => {
-                const audio = document.getElementById(id);
+            var audioIds = ['raaarrr-audio', 'aria-teamwork-audio', 'aria-pause-audio', 
+                           'raaarrr-intro-audio', 'aria-intro-audio', 'raaarrr-oops-audio'];
+            for (var i = 0; i < audioIds.length; i++) {
+                var audio = document.getElementById(audioIds[i]);
                 if (audio) {
-                    audio.play().then(() => audio.pause()).catch(e => console.log('Audio unlock:', e));
+                    audio.play().then(function() { audio.pause(); }).catch(function(e) { console.log('Audio unlock'); });
                 }
-            });
+            }
             alert('🎵 Sound enabled! Voices will play throughout your adventure!');
-            console.log('All audio unlocked');
         }
 
-        // Progress
         function saveProgress(chapter) {
             localStorage.setItem('littleXProgress', chapter);
         }
 
         function loadProgress() {
-            const saved = localStorage.getItem('littleXProgress');
+            var saved = localStorage.getItem('littleXProgress');
             if (saved) loadChapter(parseInt(saved));
         }
 
-        // Navigation
         function loadChapter(chapterNum) {
-            try {
-                particlesActive = false;
-                document.querySelectorAll('.chapter').forEach(ch => ch.style.display = 'none');
-                const targetChapter = document.getElementById('chapter' + chapterNum);
-                if (targetChapter) {
-                    targetChapter.style.display = 'block';
-                    window.scrollTo(0, 0);
-                    console.log('Loaded chapter', chapterNum);
-                } else {
-                    console.error('Chapter not found:', chapterNum);
-                }
-                
-                if (chapterNum === 2) {
-                    // 🦖 Play Raaarrr intro
-                    setTimeout(() => {
-                        const raaaarrrIntro = document.getElementById('raaarrr-intro-audio');
-                        if (raaaarrrIntro) {
-                            raaaarrrIntro.play().catch(e => console.log('Raaarrr intro:', e));
-                        }
-                    }, 500);
-                } else if (chapterNum === 3) {
-                    setTimeout(initGlitterParticles, 100);
-                    setupDrawing('glitter-canvas');
-                } else if (chapterNum === 4) {
-                    setupDrawing('build-canvas');
-                    lightOn = true;
-                    
-                    // ✨ Play ARIA intro
-                    setTimeout(() => {
-                        const ariaIntro = document.getElementById('aria-intro-audio');
-                        if (ariaIntro) {
-                            ariaIntro.play().catch(e => console.log('ARIA intro:', e));
-                        }
-                    }, 1000);
-                } else if (chapterNum === 1) {
-                    setupDrawing('chalkboard');
-                }
-            } catch (e) {
-                console.error('Load chapter error:', e);
+            particlesActive = false;
+            var chapters = document.querySelectorAll('.chapter');
+            for (var i = 0; i < chapters.length; i++) {
+                chapters[i].style.display = 'none';
+            }
+            var targetChapter = document.getElementById('chapter' + chapterNum);
+            if (targetChapter) {
+                targetChapter.style.display = 'block';
+                window.scrollTo(0, 0);
+            }
+            
+            if (chapterNum === 2) {
+                setTimeout(function() {
+                    var raaaarrrIntro = document.getElementById('raaarrr-intro-audio');
+                    if (raaaarrrIntro) {
+                        raaaarrrIntro.play().catch(function(e) { console.log('Audio error'); });
+                    }
+                }, 500);
+            } else if (chapterNum === 3) {
+                setTimeout(initGlitterParticles, 100);
+                setupDrawing('glitter-canvas');
+            } else if (chapterNum === 4) {
+                setupDrawing('build-canvas');
+                lightOn = true;
+                setTimeout(function() {
+                    var ariaIntro = document.getElementById('aria-intro-audio');
+                    if (ariaIntro) {
+                        ariaIntro.play().catch(function(e) { console.log('Audio error'); });
+                    }
+                }, 1000);
+            } else if (chapterNum === 1) {
+                setupDrawing('chalkboard');
             }
         }
 
         function nextChapter() {
             saveProgress(1);
             loadChapter(2);
-            console.log('Next chapter triggered');
         }
 
-        // Init (FIXED VERSION)
+        function vortexToChapter3() {
+            // Play Raaarrr oops sound during vortex
+            var oopsAudio = document.getElementById('raaarrr-oops-audio');
+            if (oopsAudio) {
+                oopsAudio.currentTime = 0;
+                oopsAudio.play().catch(function(e) { console.log('Oops audio:', e); });
+            }
+            setTimeout(function() { loadChapter(3); }, 1500);
+        }
+
         window.addEventListener('DOMContentLoaded', function() {
             createStars();
             setupDrawing('chalkboard');
             ensureTouchSupport();
-
-            // Force canvas to be ready
-            setTimeout(() => {
-                const canvas = document.getElementById('chalkboard');
+            setTimeout(function() {
+                var canvas = document.getElementById('chalkboard');
                 if (canvas) {
-                    console.log('Canvas ready:', canvas.width, canvas.height);
-                    const ctx = canvas.getContext('2d');
+                    var ctx = canvas.getContext('2d');
                     ctx.strokeStyle = '#8a2be2';
                     ctx.lineWidth = 2;
                     ctx.setLineDash([5, 5]);
@@ -825,9 +826,7 @@
                     ctx.setLineDash([]);
                 }
             }, 100);
-            
             loadProgress();
-            console.log('Little X Book 2 - Voices Live! 🦖🎤✨');
         });
     </script>
 </body>
