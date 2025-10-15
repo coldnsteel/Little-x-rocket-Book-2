@@ -355,9 +355,11 @@
             <div class="chalkboard-container">
                 <h3>Glitter Quest: Choose Your Path!</h3>
                 <p>Draw a healing shape or pick an instrument to harmonize the glitches.</p>
-                <div style="position: relative; width: 600px; margin: 20px auto;">
-                    <canvas id="glitter-canvas" width="600" height="400"></canvas>
-                    <canvas id="particles" width="600" height="400" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+                <div style="text-align: center; margin: 20px auto;">
+                    <div style="position: relative; display: inline-block;">
+                        <canvas id="glitter-canvas" width="600" height="400"></canvas>
+                        <canvas id="particles" width="600" height="400" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+                    </div>
                 </div>
                 <div class="instruments">
                     <button class="btn" onclick="selectHealingInstrument('harp')">🪕 Harp</button>
@@ -427,10 +429,10 @@
                     <div class="instruments">
                         <button class="btn" onclick="setBuggyDirection('up')">⬆️ Up</button>
                         <button class="btn" onclick="setBuggyDirection('down')">⬇️ Down</button>
-                        <button class="btn" onclick="setBuggyDirection('left')">⬅️ Back</button>
-                        <button class="btn" onclick="setBuggyDirection('right')">➡️ Forward</button>
+                        <button class="btn" onclick="setBuggyDirection('right')">⬅️ Forward</button>
+                        <button class="btn" onclick="setBuggyDirection('left')">➡️ Back</button>
                     </div>
-                    <div id="direction-message" style="margin-top: 10px; color: #00ff00; font-weight: bold;">Current: ➡️ Forward (Right)</div>
+                    <div id="direction-message" style="margin-top: 10px; color: #00ff00; font-weight: bold;">Current: ⬅️ Forward (Left)</div>
                 </div>
                 <div class="toggle-controls">
                     <button class="btn" onclick="toggleLight()">Toggle Light (Green/Red)</button>
@@ -461,6 +463,7 @@
         const canvasStates = {};
         let glitterDrawCount = 0;
         let buggyPositions = [];
+        let buttonCount = 0; // Track control buttons
         let launchParticles = [];
         let launchAnimating = false;
         let buggiesMoving = false;
@@ -672,11 +675,12 @@
                 piano: "🎹 Raaarrr touches the Cosmic Piano and it sparkles!",
                 harp: "🪕 The Star Harp glows as Raaarrr plucks its strings!",
                 flute: "🪈 Raaarrr's breath makes the Nebula Flute sing!",
-                drums: "🥁 Raaarrr taps the Galaxy Drums with his tail!"
+                drums: "🥁 Raaarrr's tail is READY to POUND those Galaxy Drums!"
             };
             document.getElementById('instrument-message').textContent = messages[instrument];
             playTone(440, 0.5, instrument);
             
+            // Add floating musical notes for all instruments!
             const container = document.querySelector('#chapter2 .chalkboard-container');
             if (container) {
                 const notes = ['♪', '♫', '♬', '♩'];
@@ -695,52 +699,65 @@
 
         function playRaaaarrrSound() {
             if (!currentDinoInstrument) {
-                document.getElementById('instrument-message').textContent = "Choose an instrument first!";
+                document.getElementById('instrument-message').textContent = "⚠️ Choose an instrument first!";
                 return;
             }
+            
             const raaarrr = document.getElementById('raaarrr-character');
             
             if (currentDinoInstrument === 'drums') {
-                // MEGA TAIL TAP DRUMMING!
+                // 🥁 MEGA TAIL DRUMMING ANIMATION! 🥁
                 let taps = 0;
                 const tapInterval = setInterval(() => {
                     if (taps % 2 === 0) {
-                        raaarrr.style.transform = 'scale(2.0) rotate(-45deg) translateX(-30px)';
+                        // Swing LEFT
+                        raaarrr.style.transform = 'scale(2.0) rotate(-50deg) translateX(-40px) translateY(-20px)';
                         raaarrr.textContent = '🦖';
                     } else {
-                        raaarrr.style.transform = 'scale(2.0) rotate(45deg) translateX(30px)';
+                        // Swing RIGHT  
+                        raaarrr.style.transform = 'scale(2.0) rotate(50deg) translateX(40px) translateY(-20px)';
                         raaarrr.textContent = '🦕';
                     }
                     
-                    // Spawn flying notes on EVERY tap
+                    // Spawn flying notes and emojis on EVERY tap!
                     const note = document.createElement('div');
-                    note.textContent = ['♪', '♫', '♬', '🥁'][Math.floor(Math.random() * 4)];
-                    note.style.cssText = `position: absolute; font-size: 60px; color: #ffff00; text-shadow: 0 0 30px #ffff00; animation: float-up 1.5s ease-out forwards; left: ${Math.random() * 400 - 200}px; top: 20%; pointer-events: none; z-index: 1000;`;
+                    note.textContent = ['♪', '♫', '♬', '🥁', '💥'][Math.floor(Math.random() * 5)];
+                    note.style.cssText = `position: absolute; font-size: ${50 + Math.random() * 20}px; color: ${['#ffff00', '#ff6b9d', '#00ff00'][Math.floor(Math.random() * 3)]}; text-shadow: 0 0 30px currentColor; animation: float-up 1.5s ease-out forwards; left: ${Math.random() * 400 - 200}px; top: 10%; pointer-events: none; z-index: 1000;`;
                     const container = raaarrr.parentElement;
                     container.style.position = 'relative';
                     container.appendChild(note);
                     setTimeout(() => note.remove(), 1500);
                     
-                    // DRUM HIT sound on every tap!
+                    // DRUM BOOM sound on every tap!
                     initAudio();
-                    playTone(80 + Math.random() * 40, 0.15, 'drums');
+                    const drumOsc = audioContext.createOscillator();
+                    const drumGain = audioContext.createGain();
+                    drumOsc.connect(drumGain);
+                    drumGain.connect(audioContext.destination);
+                    drumOsc.type = 'square';
+                    drumOsc.frequency.setValueAtTime(60, audioContext.currentTime);
+                    drumGain.gain.setValueAtTime(0.8, audioContext.currentTime);
+                    drumGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    drumOsc.start(audioContext.currentTime);
+                    drumOsc.stop(audioContext.currentTime + 0.2);
                     
                     taps++;
                     if (taps > 30) {
                         clearInterval(tapInterval);
-                        raaarrr.style.transform = 'scale(1) rotate(0deg)';
+                        raaarrr.style.transform = 'scale(1) rotate(0deg) translateX(0) translateY(0)';
                         raaarrr.textContent = '🦖';
                     }
-                }, 50);
+                }, 55);
                 
-                document.getElementById('instrument-message').textContent = "💥 RAAARRR! 🥁💥 MEGA TAIL DRUMMING! BOOM BOOM BOOM! 💥";
+                document.getElementById('instrument-message').textContent = "💥🥁 RAAARRR! EPIC TAIL DRUMMING! BOOM! BAM! POW! 💥🥁";
+                
             } else {
                 // Regular animation for other instruments
-                raaarrr.style.transform = 'scale(1.3) rotate(10deg)';
+                raaarrr.style.transform = 'scale(1.4) rotate(15deg)';
                 setTimeout(() => {
                     raaarrr.style.transform = 'scale(1) rotate(0deg)';
                 }, 400);
-                document.getElementById('instrument-message').textContent = "RAAARRR! 🎵 Musical magic!";
+                document.getElementById('instrument-message').textContent = "RAAARRR! 🎵 Beautiful music!";
                 
                 initAudio();
                 playTone(200 + Math.random() * 200, 0.4, currentDinoInstrument);
@@ -822,64 +839,60 @@
             const pCtx = pCanvas.getContext('2d');
             particles = [];
             
-            // Create particles around CENTER of canvas (300, 200)
+            // TRUE CENTER of canvas
+            const centerX = pCanvas.width / 2;  // 300
+            const centerY = pCanvas.height / 2; // 200
+            
+            console.log('⭐ Galaxy POINT starts at center:', centerX, centerY);
+            
+            // ALL particles start as TIGHT CLUSTER at center (appearing as one point!)
             for (let i = 0; i < 50; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * 150;
+                const angle = (Math.PI * 2 * i) / 50;
+                const tinyRadius = Math.random() * 3; // Tiny cluster, looks like a point
+                
                 particles.push({
-                    x: 300 + Math.cos(angle) * distance,
-                    y: 200 + Math.sin(angle) * distance,
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
+                    x: centerX + Math.cos(angle) * tinyRadius,
+                    y: centerY + Math.sin(angle) * tinyRadius,
+                    vx: Math.cos(angle) * 0.5, // Very slow drift
+                    vy: Math.sin(angle) * 0.5,
+                    angle: angle,
+                    exploded: false,
                     color: `hsl(${Math.random() * 360}, 100%, 70%)`,
-                    size: Math.random() * 4 + 2
+                    size: Math.random() * 5 + 3
                 });
             }
             
             function animateParticles() {
                 if (!particlesActive) return;
-                pCtx.clearRect(0, 0, 600, 400);
+                pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
                 
                 particles.forEach(p => {
                     if (particlesReturning) {
-                        const centerX = 300;
-                        const centerY = 200;
-                        const dx = centerX - p.x;
-                        const dy = centerY - p.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (distance > 5) {
-                            p.vx = dx * 0.08;
-                            p.vy = dy * 0.08;
-                        } else {
-                            p.vx *= 0.95;
-                            p.vy *= 0.95;
+                        // When "Compose Harmony" clicked → EXPLODE and SWIRL!
+                        if (!p.exploded) {
+                            // RELEASE! Give them explosion velocity
+                            p.vx = Math.cos(p.angle) * (4 + Math.random() * 6);
+                            p.vy = Math.sin(p.angle) * (4 + Math.random() * 6);
+                            p.exploded = true;
                         }
+                        // Add swirling motion as they spread
+                        const spiralForce = 0.05;
+                        p.vx += -p.y * spiralForce / 100;
+                        p.vy += p.x * spiralForce / 100;
                     }
                     
                     p.x += p.vx;
                     p.y += p.vy;
                     
-                    const margin = 25;
-                    if (p.x < margin) { 
-                        p.x = margin; 
-                        p.vx = Math.abs(p.vx); 
-                    }
-                    if (p.x > 600 - margin) { 
-                        p.x = 600 - margin; 
-                        p.vx = -Math.abs(p.vx); 
-                    }
-                    if (p.y < margin) { 
-                        p.y = margin; 
-                        p.vy = Math.abs(p.vy); 
-                    }
-                    if (p.y > 400 - margin) { 
-                        p.y = 400 - margin; 
-                        p.vy = -Math.abs(p.vy); 
-                    }
+                    // Keep particles in bounds
+                    if (p.x < 5) { p.x = 5; p.vx = Math.abs(p.vx) * 0.8; }
+                    if (p.x > pCanvas.width - 5) { p.x = pCanvas.width - 5; p.vx = -Math.abs(p.vx) * 0.8; }
+                    if (p.y < 5) { p.y = 5; p.vy = Math.abs(p.vy) * 0.8; }
+                    if (p.y > pCanvas.height - 5) { p.y = pCanvas.height - 5; p.vy = -Math.abs(p.vy) * 0.8; }
                     
+                    // Draw glowing particle
                     pCtx.fillStyle = p.color;
-                    pCtx.shadowBlur = 8;
+                    pCtx.shadowBlur = 15;
                     pCtx.shadowColor = p.color;
                     pCtx.beginPath();
                     pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -987,6 +1000,14 @@
             const blocks = { wheel: '🚗', antenna: '📡', button: '🔘' };
             const state = canvasStates['build-canvas'];
             
+            // Limit control buttons to 3 max
+            if (type === 'button' && buttonCount >= 3) {
+                message.textContent = '⚠️ Maximum 3 control buttons! Use the ones you have!';
+                initAudio();
+                playTone(300, 0.3, 'square');
+                return;
+            }
+            
             if (state) {
                 const x = Math.random() * (state.canvas.width - 80) + 40;
                 const y = Math.random() * (state.canvas.height - 80) + 40;
@@ -1006,21 +1027,52 @@
                 }
                 
                 if (type === 'button') {
-                    ctx.fillStyle = '#00ff00';
-                    ctx.fillText('⚡', x, y - 20);
+                    buttonCount++;
+                    
+                    // Add glowing lightning bolt
+                    ctx.save();
+                    ctx.font = '40px Arial';
+                    ctx.fillStyle = '#ffff00';
+                    ctx.shadowColor = '#ffff00';
+                    ctx.shadowBlur = 30;
+                    ctx.fillText('⚡', x, y - 25);
+                    ctx.restore();
+                    
+                    // FLASH the canvas!
+                    let flashCount = 0;
+                    const flashInterval = setInterval(() => {
+                        if (flashCount % 2 === 0) {
+                            state.canvas.style.boxShadow = '0 0 50px #ffff00';
+                        } else {
+                            state.canvas.style.boxShadow = 'none';
+                        }
+                        flashCount++;
+                        if (flashCount > 6) {
+                            clearInterval(flashInterval);
+                            state.canvas.style.boxShadow = 'none';
+                        }
+                    }, 150);
+                    
+                    // Play electrical sound
+                    initAudio();
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => playTone(800 + Math.random() * 400, 0.1, 'square'), i * 100);
+                    }
+                    
+                    message.textContent = `🔘⚡ CONTROL BUTTON ${buttonCount}/3 ACTIVATED! Power surging!`;
+                } else {
+                    message.textContent = `Placed ${blocks[type]}! ${type === 'wheel' ? 'Buggy ready to roll!' : 'Keep building!'}`;
                 }
                 
                 initAudio();
                 playTone(523, 0.2, 'piano');
             }
-            
-            message.textContent = `Placed ${blocks[type]}! ${type === 'wheel' ? 'Buggy ready to roll!' : type === 'button' ? 'Control button!' : 'Keep building!'}`;
         }
 
         function setBuggyDirection(dir) {
             buggyDirection = dir;
-            const arrows = {up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️'};
-            const names = {up: 'Up', down: 'Down', left: 'Back (Left)', right: 'Forward (Right)'};
+            const arrows = {up: '⬆️', down: '⬇️', left: '➡️', right: '⬅️'};
+            const names = {up: 'Up', down: 'Down', left: 'Back (Right)', right: 'Forward (Left)'};
             document.getElementById('direction-message').textContent = `Current: ${arrows[dir]} ${names[dir]}`;
             
             initAudio();
@@ -1110,34 +1162,36 @@
                 
                 buggyPositions.forEach(buggy => {
                     const speed = 4;
-                    let rotation = 0;
-                    
-                    switch(buggyDirection) {
-                        case 'right': // FORWARD = RIGHT (car faces right →)
-                            buggy.x += speed;
-                            if (buggy.x > state.canvas.width + 30) buggy.x = -30;
-                            rotation = 0;
-                            break;
-                        case 'left': // BACK = LEFT (car faces left ←)
-                            buggy.x -= speed;
-                            if (buggy.x < -30) buggy.x = state.canvas.width + 30;
-                            rotation = Math.PI; // Flip car to face left
-                            break;
-                        case 'up': // UP (car faces up ↑)
-                            buggy.y -= speed;
-                            if (buggy.y < -30) buggy.y = state.canvas.height + 30;
-                            rotation = -Math.PI / 2;
-                            break;
-                        case 'down': // DOWN (car faces down ↓)
-                            buggy.y += speed;
-                            if (buggy.y > state.canvas.height + 30) buggy.y = -30;
-                            rotation = Math.PI / 2;
-                            break;
-                    }
                     
                     state.ctx.save();
                     state.ctx.translate(buggy.x, buggy.y);
-                    state.ctx.rotate(rotation);
+                    
+                    // 🚗 emoji faces LEFT naturally
+                    // Use SCALE to flip horizontally for forward/right
+                    // User wants: Forward (➡️) = goes LEFT, Back (⬅️) = goes RIGHT
+                    switch(buggyDirection) {
+                        case 'right': // FORWARD button → buggy goes LEFT
+                            buggy.x -= speed;
+                            if (buggy.x < -30) buggy.x = state.canvas.width + 30;
+                            // No flip - faces left naturally
+                            break;
+                        case 'left': // BACK button → buggy goes RIGHT
+                            buggy.x += speed;
+                            if (buggy.x > state.canvas.width + 30) buggy.x = -30;
+                            state.ctx.scale(-1, 1); // Flip to face right
+                            break;
+                        case 'up': // UP ↑
+                            buggy.y -= speed;
+                            if (buggy.y < -30) buggy.y = state.canvas.height + 30;
+                            state.ctx.rotate(Math.PI / 2);
+                            break;
+                        case 'down': // DOWN ↓
+                            buggy.y += speed;
+                            if (buggy.y > state.canvas.height + 30) buggy.y = -30;
+                            state.ctx.rotate(-Math.PI / 2);
+                            break;
+                    }
+                    
                     state.ctx.font = '48px Arial';
                     state.ctx.textAlign = 'center';
                     state.ctx.textBaseline = 'middle';
@@ -1202,6 +1256,7 @@
             state.ctx.fillStyle = '#1a1a2e';
             state.ctx.fillRect(0, 0, state.canvas.width, state.canvas.height);
             buggyPositions = [];
+            buttonCount = 0; // Reset button count
             
             lightOn = true;
             const status = document.getElementById('light-status');
@@ -1209,7 +1264,7 @@
             status.className = 'light-status light-green';
             
             buggyDirection = 'right';
-            document.getElementById('direction-message').textContent = 'Current: ➡️ Forward (Right)';
+            document.getElementById('direction-message').textContent = 'Current: ⬅️ Forward (Left)';
             
             document.getElementById('build-message').textContent = 'Canvas cleared - start building again!';
         }
@@ -1314,7 +1369,7 @@
 
         function loadChapter(chapterNum) {
             try {
-                // STOP ALL AUDIO
+                // STOP ALL AUDIO when loading
                 const allAudio = ['raaarrr-audio', 'aria-teamwork-audio', 'aria-pause-audio', 
                                  'raaarrr-intro-audio', 'aria-intro-audio', 'raaarrr-oops-audio'];
                 allAudio.forEach(id => {
@@ -1346,15 +1401,16 @@
                     window.scrollTo(0, 0);
                 }
                 
+                // Wait longer before playing audio to avoid conflict
                 if (chapterNum === 2) {
                     setTimeout(() => {
                         initAudio();
                         const raaaarrrIntro = document.getElementById('raaarrr-intro-audio');
                         if (raaaarrrIntro) {
                             raaaarrrIntro.volume = 0.7;
-                            raaaarrrIntro.play().catch(e => console.log('Raaarrr intro blocked:', e));
+                            raaaarrrIntro.play().catch(e => console.log('Raaarrr intro:', e.message));
                         }
-                    }, 800);
+                    }, 1000);
                 } else if (chapterNum === 3) {
                     setTimeout(initGlitterParticles, 100);
                     setupDrawing('glitter-canvas');
@@ -1378,9 +1434,9 @@
                         const ariaIntro = document.getElementById('aria-intro-audio');
                         if (ariaIntro) {
                             ariaIntro.volume = 0.7;
-                            ariaIntro.play().catch(e => console.log('ARIA intro blocked:', e));
+                            ariaIntro.play().catch(e => console.log('ARIA intro:', e.message));
                         }
-                    }, 1000);
+                    }, 1200);
                 } else if (chapterNum === 1) {
                     setupDrawing('name-canvas');
                     setupDrawing('chalkboard');
@@ -1396,12 +1452,15 @@
         }
 
         function vortexToChapter3() {
+            // Play oops audio first, THEN load chapter after it has time to start
+            initAudio();
             const oopsAudio = document.getElementById('raaarrr-oops-audio');
             if (oopsAudio) {
-                oopsAudio.currentTime = 0;
-                oopsAudio.play().catch(e => console.log('Oops audio:', e));
+                oopsAudio.volume = 0.7;
+                oopsAudio.play().catch(e => console.log('Oops audio:', e.message));
             }
-            setTimeout(() => loadChapter(3), 1500);
+            // Wait longer so audio doesn't get interrupted
+            setTimeout(() => loadChapter(3), 2000);
         }
 
         window.addEventListener('DOMContentLoaded', function() {
